@@ -19,6 +19,6 @@
             </feature>
             <access origin="https://accounts.google.com/*" />
         </config-file>
-        <source-file src="src/android/GoogleFit.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
+        <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
     </platform>
 </plugin>
