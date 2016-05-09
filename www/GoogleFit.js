@@ -1,4 +1,6 @@
-function GoogleFit() {};
+function GoogleFit() {
+
+}
 
 GoogleFit.prototype.connect = function (successCallback, failureCallback) {
   cordova.exec(successCallback,
