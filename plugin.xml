@@ -4,7 +4,7 @@
     <name>Google Fit phonegap plugin</name>
     <description>Google Fit phonegap plugin</description>
     <js-module src="www/GoogleFit.js" name="GoogleFit">
-        <clobbers target="window.fitatu.plugins.googlefit" />
+        <clobbers target="window.fitatu.plugins.googleFit" />
     </js-module>
 
     <engines>
