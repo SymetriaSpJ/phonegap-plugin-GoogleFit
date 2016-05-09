@@ -3,7 +3,7 @@
     id="com.fitatu.phonegap.plugin.GoogleFit" version="0.0.1">
     <name>Google Fit phonegap plugin</name>
     <description>Google Fit phonegap plugin</description>
-    <js-module src="www/GoogleFit.js" name="device">
+    <js-module src="www/GoogleFit.js" name="GoogleFit">
         <clobbers target="window.fitatu.plugins.googlefit" />
     </js-module>
 
