@@ -29,8 +29,8 @@ GoogleFit.install = function () {
         window.plugins = {};
     }
 
-    window.fitatu.plugin.googlefit = new GoogleFit();
-    return window.fitatu.plugin.googlefit;
+    window.plugins.fitatuGoogleFit = new GoogleFit();
+    return window.plugins.fitatuGoogleFit;
 };
 
 cordova.addConstructor(GoogleFit.install);
