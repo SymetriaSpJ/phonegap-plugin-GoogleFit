@@ -2,12 +2,13 @@ function GoogleFit() {
 
 }
 
-GoogleFit.prototype.connect = function (successCallback, failureCallback) {
+GoogleFit.prototype.getPermissions = function (successCallback, failureCallback) {
     cordova.exec(
         successCallback,
         failureCallback,
         "GoogleFit",
-        "connect"
+        "getPermissions",
+        []
     );
 };
 
