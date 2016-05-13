@@ -151,17 +151,11 @@ public class GoogleFitService {
         Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
         Log.i(TAG, "Range End: " + dateFormat.format(endTime));
 
-        Log.i(TAG, "TimeBucket: 15 ");
-
         DataReadRequest readRequest = new DataReadRequest.Builder()
-//                .bucketByActivityType(1, TimeUnit.SECONDS)
-
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-//                .bucketBySession(300, TimeUnit.SECONDS)
-                .bucketByTime(15, TimeUnit.MINUTES)
-//                .bucketByActivityType(24, TimeUnit.HOURS)
-//                .bucketByActivitySegment(24, TimeUnit.HOURS)
-//                .bucketBySession(24, TimeUnit.HOURS)
+                .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
+                .aggregate(DataType.TYPE_ACTIVITY_SEGMENT, DataType.AGGREGATE_ACTIVITY_SUMMARY)
+                .bucketByActivitySegment(1, TimeUnit.SECONDS)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
 
@@ -169,6 +163,7 @@ public class GoogleFitService {
 //        PendingResult<DataReadResult> dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(10, TimeUnit.SECONDS);
 
         for (Bucket bucket : dataReadResult.getBuckets()) {
+            Log.i(TAG, "--- Bucket --- ");
             List<DataSet> dataSets = bucket.getDataSets();
             for (DataSet dataSet : dataSets) {
                 dumpDataSet(dataSet);
@@ -192,7 +187,7 @@ public class GoogleFitService {
         DateFormat dateFormat = DateFormat.getTimeInstance();
 
         for (DataPoint dp : dataSet.getDataPoints()) {
-            if (dp.getOriginalDataSource().getAppPackageName().equals("com.endomondo.android")) {
+            if (dp.getOriginalDataSource().getAppPackageName() != null && dp.getOriginalDataSource().getAppPackageName().equals("com.endomondo.android")) {
                 for(Field field : dp.getDataType().getFields()) {
                     if (field.getName().equals("calories")) {
                         calories += dp.getValue(field).asFloat();
@@ -201,6 +196,10 @@ public class GoogleFitService {
             }
             Log.i(TAG, "Data point --- calories: " + calories);
             Log.i(TAG, "\tApp: " + dp.getOriginalDataSource().getAppPackageName());
+            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().describeContents());
+            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().getType());
+            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().getStreamIdentifier());
+            Log.i(TAG, "\tgetDataType: " + dp.getDataType());
             Log.i(TAG, "\tzzuo: " + dp.getDataType().zzuo());
             Log.i(TAG, "\tzzug: " + dp.zzug());
             Log.i(TAG, "\tzzuh: " + dp.zzuh());
