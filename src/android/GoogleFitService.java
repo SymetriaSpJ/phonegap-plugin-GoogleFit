@@ -12,6 +12,7 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
@@ -23,10 +24,12 @@ import com.google.android.gms.fitness.result.DataReadResult;
 import org.apache.cordova.CallbackContext;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GoogleFitService extends Thread {
+public class GoogleFitService {
     public static final String TAG = "fitatu-googlefit";
 
     private Context appContext;
@@ -42,7 +45,10 @@ public class GoogleFitService extends Thread {
         this.activityContext = activityContext;
     }
 
-    private void buildGoogleApiClient(GoogleApiClient.OnConnectionFailedListener onConnectionFiled) {
+    private void buildGoogleApiClient(
+            GoogleApiClient.ConnectionCallbacks connectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener onConnectionFiled
+    ) {
         googleApiClient = new GoogleApiClient.Builder(appContext)
                 .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
@@ -50,21 +56,7 @@ public class GoogleFitService extends Thread {
                 .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addScope(new Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addConnectionCallbacks(
-                        new GoogleApiClient.ConnectionCallbacks() {
-                            @Override
-                            public void onConnected(Bundle bundle) {
-                                Log.i(TAG, "Connected!");
-                            }
-
-                            @Override
-                            public void onConnectionSuspended(int i) {
-                                if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-                                    Log.i(TAG, "Connection lost.  Cause: Network Lost.");
-                                } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-                                    Log.i(TAG, "Connection lost.  Reason: Service Disconnected");
-                                }
-                            }
-                        }
+                    connectionCallbacks
                 )
                 .addOnConnectionFailedListener(
                         onConnectionFiled
@@ -72,15 +64,25 @@ public class GoogleFitService extends Thread {
                 .build();
     }
 
-    public synchronized void getPermissions() {
+    public synchronized void getPermissions(CallbackContext callbackContext) {
         buildGoogleApiClient(
+                new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle bundle) {
+                        Log.i(TAG, "Connected!");
+                    }
+
+                    @Override
+                    public void onConnectionSuspended(int i) {
+                        logConnectionSuspended(i);
+                    }
+                },
                 new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult result) {
                         Log.i(TAG, "Connection failed. Cause: " + result.toString());
+
                         if (!result.hasResolution()) {
-                            // Show the localized error dialog
-                            GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), activityContext, 0).show();
                             return;
                         }
 
@@ -99,17 +101,23 @@ public class GoogleFitService extends Thread {
                 }
         );
 
-        googleApiClient.connect();
+        if (googleApiClient.blockingConnect().isSuccess()) {
+            callbackContext.success();
+        }
     }
 
-    public synchronized void getActivities(long startTime, long endTime) {
+    public synchronized boolean isConnected() {
         try {
             establishConnection();
         } catch (Exception e) {
-            Log.i(TAG, "Connection failed");
-
-            return;
+            return false;
         }
+
+        return googleApiClient.isConnected();
+    }
+
+    public synchronized List<FitnessActivity> getActivities(long startTime, long endTime) throws Exception {
+        establishConnection();
 
         DateFormat dateFormat = DateFormat.getDateInstance();
 
@@ -125,14 +133,47 @@ public class GoogleFitService extends Thread {
                 .build();
 
         DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(10, TimeUnit.SECONDS);
+        return rewriteBucketToFitnessActivities(dataReadResult.getBuckets());
+    }
 
-        for (Bucket bucket : dataReadResult.getBuckets()) {
-            Log.i(TAG, "--- Bucket --- ");
+    private List<FitnessActivity> rewriteBucketToFitnessActivities(List<Bucket> bucketList) {
+        List<FitnessActivity> activities = new ArrayList<FitnessActivity>();
+
+        bucketLoop:
+        for (Bucket bucket : bucketList) {
+            FitnessActivity activity = new FitnessActivity();
+
             List<DataSet> dataSets = bucket.getDataSets();
             for (DataSet dataSet : dataSets) {
-                dumpDataSet(dataSet);
+
+                for (DataPoint dp : dataSet.getDataPoints()) {
+                    if (dp.getOriginalDataSource().getAppPackageName() == null) {
+                        continue bucketLoop;
+                    }
+
+                    activity.setSourceName(dp.getOriginalDataSource().getAppPackageName());
+
+                    activity.setStartDate(new Date(dp.getStartTime(TimeUnit.MILLISECONDS)));
+                    activity.setEndDate(new Date(dp.getEndTime(TimeUnit.MILLISECONDS)));
+
+                    for(Field field : dp.getDataType().getFields()) {
+                        if (field.getName().equals("calories")) { // TODO: constants calories
+                            activity.setCalories(dp.getValue(field).asFloat());
+                        } else if (field.getName().equals("distance")) {
+                            activity.setDistance(dp.getValue(field).asFloat());
+                        } else if (field.getName().equals("activity")) {
+                            int activityType = dp.getValue(field).asInt();
+                            activity.setTypeId(activityType);
+                            activity.setName(FitnessActivities.getName(activityType));
+                        }
+                    }
+                }
             }
+
+            activities.add(activity);
         }
+
+        return activities;
     }
 
     private void establishConnection() throws Exception {
@@ -140,12 +181,24 @@ public class GoogleFitService extends Thread {
             return;
         }
 
-        buildGoogleApiClient(new GoogleApiClient.OnConnectionFailedListener() {
-            @Override
-            public void onConnectionFailed(ConnectionResult result) {
-                Log.i(TAG, "Connection failed. Cause: " + result.toString());
-            }
-        });
+        buildGoogleApiClient(
+                new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle bundle) {
+                        Log.i(TAG, "Connected!");
+                    }
+
+                    @Override
+                    public void onConnectionSuspended(int i) {
+                        logConnectionSuspended(i);
+                    }
+                },
+                new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult result) {
+                        Log.i(TAG, "Connection failed. Cause: " + result.toString());
+                    }
+                });
 
         googleApiClient.connect();
 
@@ -158,36 +211,11 @@ public class GoogleFitService extends Thread {
         }
     }
 
-    private static void dumpDataSet(DataSet dataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        DateFormat dateFormat = DateFormat.getTimeInstance();
-
-        for (DataPoint dp : dataSet.getDataPoints()) {
-            if (dp.getOriginalDataSource().getAppPackageName() != null && dp.getOriginalDataSource().getAppPackageName().equals("com.endomondo.android")) {
-                for(Field field : dp.getDataType().getFields()) {
-                    if (field.getName().equals("calories")) {
-//                        calories += dp.getValue(field).asFloat();
-                    }
-                }
-            }
-            Log.i(TAG, "Data point ---");
-            Log.i(TAG, "\tApp: " + dp.getOriginalDataSource().getAppPackageName());
-            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().describeContents());
-            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().getType());
-            Log.i(TAG, "\tActivityName: " + dp.getOriginalDataSource().getStreamIdentifier());
-            Log.i(TAG, "\tgetDataType: " + dp.getDataType());
-            Log.i(TAG, "\tzzuo: " + dp.getDataType().zzuo());
-            Log.i(TAG, "\tzzug: " + dp.zzug());
-            Log.i(TAG, "\tzzuh: " + dp.zzuh());
-            Log.i(TAG, "\tzzuj: " + dp.zzuj());
-            Log.i(TAG, "\ttotring: " + dp.toString());
-            Log.i(TAG, "\tType: " + dp.getDataType().getName());
-            Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            for(Field field : dp.getDataType().getFields()) {
-                Log.i(TAG, "\tField: " + field.getName() +
-                        " Value: " + dp.getValue(field));
-            }
+    private void logConnectionSuspended(int i) {
+        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+            Log.i(TAG, "Connection lost.  Cause: Network Lost.");
+        } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+            Log.i(TAG, "Connection lost.  Reason: Service Disconnected");
         }
     }
 }
