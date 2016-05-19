@@ -57,12 +57,12 @@ Przykład activites:
   source: "com.endomondo.android"
 ],
 [
-  aivityStartedAt: "2016-05-12 12:32"
-  activityStoppedAt: "2016-05-12 12:47"
-  appName: "Endomondo"
-  distance: 1283.7640380859375
-  energy: 92
-  name: "running"
+  aivityStartedAt: "2016-05-12 12:32",
+  activityStoppedAt: "2016-05-12 12:47",
+  appName: "Endomondo",
+  distance: 1283.7640380859375,
+  energy: 92,
+  name: "running",
   source: "com.endomondo.android"
 ]
 

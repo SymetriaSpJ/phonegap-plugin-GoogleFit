@@ -20,5 +20,9 @@
             <access origin="https://accounts.google.com/*" />
         </config-file>
         <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
+        <source-file src="src/android/FitnessActivity.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
+        <source-file src="src/android/GoogleFitService.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
+        <source-file src="src/android/Command/IsConnectedCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
+        <source-file src="src/android/Command/GetActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
     </platform>
 </plugin>
