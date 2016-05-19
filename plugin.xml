@@ -15,7 +15,7 @@
         <framework src="com.google.android.gms:play-services:+" />
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="GoogleFit">
-                <param name="android-package" value="com.fitatu.phonegap.plugin.GoogleFit" />
+                <param name="android-package" value="com.fitatu.phonegap.plugin.GoogleFit.GoogleFitCordovaPlugin" />
             </feature>
             <access origin="https://accounts.google.com/*" />
         </config-file>
