@@ -35,48 +35,29 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1 && resultCode == 0) {
+            breakGetPermissionsLoop = true;
+        }
+    }
+
+    @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
         if (action.equals("isConnected")) {
-            cordova.getThreadPool().execute(
-                    new IsConnectedCommand(
-                            googleFitService,
-                            callbackContext
-                    )
-            );
+            handleIsConnected(callbackContext);
 
             return true;
         }
 
         if (action.equals("getActivities")) {
-            long startTime = args.getJSONObject(0).getLong("startTime");
-            long endTime = args.getJSONObject(0).getLong("endTime");
-
-            cordova.getThreadPool().execute(
-                    new GetActivitiesCommand(
-                            googleFitService,
-                            startTime,
-                            endTime,
-                            callbackContext)
-            );
+            handleGetActivities(args, callbackContext);
 
             return true;
         }
 
         if (action.equals("getPermissions")) {
-            cordova.setActivityResultCallback(this);
-            googleFitService.getPermissions(callbackContext);
-
-            while (!googleFitService.isConnected() && !breakGetPermissionsLoop) {
-                SystemClock.sleep(100);
-            }
-
-            breakGetPermissionsLoop = false;
-            if (googleFitService.isConnected()) {
-                callbackContext.success();
-            } else {
-                callbackContext.error("No permissions");
-            }
+            handleGetPermissions(callbackContext);
 
             return true;
         }
@@ -84,10 +65,42 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
         return false;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1 && resultCode == 0) {
-            breakGetPermissionsLoop = true;
+    private void handleIsConnected(CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(
+                new IsConnectedCommand(
+                        googleFitService,
+                        callbackContext
+                )
+        );
+    }
+
+    private void handleGetPermissions(CallbackContext callbackContext) {
+        cordova.setActivityResultCallback(this);
+        googleFitService.getPermissions(callbackContext);
+
+        while (!googleFitService.isConnected() && !breakGetPermissionsLoop) {
+            SystemClock.sleep(100);
+        }
+
+        breakGetPermissionsLoop = false;
+        if (googleFitService.isConnected()) {
+            callbackContext.success();
+        } else {
+            callbackContext.error("No permissions");
         }
     }
+
+    private void handleGetActivities(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        long startTime = args.getJSONObject(0).getLong("startTime");
+        long endTime = args.getJSONObject(0).getLong("endTime");
+
+        cordova.getThreadPool().execute(
+                new GetActivitiesCommand(
+                        googleFitService,
+                        startTime,
+                        endTime,
+                        callbackContext)
+        );
+    }
+
 }
