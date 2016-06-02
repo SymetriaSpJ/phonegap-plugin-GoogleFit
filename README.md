@@ -17,19 +17,6 @@ window.plugins.fitatuGoogleFit.isConnected(
 );
 ```
 
-#### Uruchamiamy proces uzyskania praw do Google Fit API
-
-```javascript
-window.plugins.fitatuGoogleFit.getGoogleFitPermission(
-  function() {
-	console.log('success');
-  },
-  function(message) {
-    console.log('error: ' + message);
-  }
-);
-```
-
 #### Sprawdzamy czy posiadamy prawa do lokalizacji
 
 ```javascript
@@ -52,11 +39,24 @@ window.plugins.fitatuGoogleFit.hasLocationPermission(
 ```javascript
 window.plugins.fitatuGoogleFit.getLocationPermission(
   function(currentPermission) {
-  	if (isConnected) {
+  	if (currentPermission) {
   	  console.log('You have permission already');
   	} else {
   	  console.log('Popup was displayed');
   	}
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+#### Uruchamiamy proces uzyskania praw do Google Fit API
+
+```javascript
+window.plugins.fitatuGoogleFit.getGoogleFitPermission(
+  function() {
+	console.log('success');
   },
   function(message) {
     console.log('error: ' + message);

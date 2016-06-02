@@ -40,7 +40,7 @@ public class GetActivitiesCommand extends Thread {
         try {
             activities = googleFitService.getActivities(startTime, endTime);
         } catch (Exception e) {
-            callbackContext.error("Problem with connection to Google Fit API");
+            callbackContext.error("Problem with Google Fit API: " + e.getMessage());
             return;
         }
 

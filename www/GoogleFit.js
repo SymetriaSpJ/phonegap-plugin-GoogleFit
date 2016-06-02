@@ -12,12 +12,32 @@ GoogleFit.prototype.isConnected = function (successCallback) {
     );
 };
 
-GoogleFit.prototype.getPermissions = function (successCallback, failureCallback) {
+GoogleFit.prototype.getGoogleFitPermission = function (successCallback, failureCallback) {
     cordova.exec(
         successCallback,
         failureCallback,
         "GoogleFit",
-        "getPermissions",
+        "getGoogleFitPermission",
+        []
+    );
+};
+
+GoogleFit.prototype.getLocationPermission = function (successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "getLocationPermission",
+        []
+    );
+};
+
+GoogleFit.prototype.hasLocationPermission = function (successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "hasLocationPermission",
         []
     );
 };
