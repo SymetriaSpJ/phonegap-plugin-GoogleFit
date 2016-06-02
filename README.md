@@ -107,6 +107,6 @@ UWAGA: do message trafiają komunikaty przeznaczone tylko dla oczu programisty ;
 
 #### Proponowany flow pobierania uprawnień:
 
-![Proponowany flow pobierania uprawnień](https://github.com/SymetriaSpJ/phonegap-plugin-GoogleFit/blob/docs/GoogleFitPhonegapPlugin-getPermissions.png "getPermissions")
+![Proponowany flow pobierania uprawnień](https://github.com/SymetriaSpJ/phonegap-plugin-GoogleFit/blob/docs/GoogleFitPhonegapPlugin-getPermissions.png =763x513 "getPermissions")
 
 
