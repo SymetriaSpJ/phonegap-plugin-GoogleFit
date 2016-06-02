@@ -82,22 +82,24 @@ window.plugins.fitatuGoogleFit.getActivities(
 Przykład activites:
 ```
 [
-  activityStartedAt: "2016-05-12 08:35", // UTC
-  activityStoppedAt: "2016-05-12 08:55",
-  appName: "Endomondo",
-  distance: 1311.4349365234375,
-  energy: 94,
-  name: "running",
-  source: "com.endomondo.android"
-],
-[
-  aivityStartedAt: "2016-05-12 12:32",
-  activityStoppedAt: "2016-05-12 12:47",
-  appName: "Endomondo",
-  distance: 1283.7640380859375,
-  energy: 92,
-  name: "running",
-  source: "com.endomondo.android"
+    {
+      activityStartedAt: "2016-05-12 08:35", // UTC
+      activityStoppedAt: "2016-05-12 08:55",
+      appName: "Endomondo",
+      distance: 1311.4349365234375,
+      energy: 94,
+      name: "running",
+      source: "com.endomondo.android"
+    },
+    {
+      aivityStartedAt: "2016-05-12 12:32",
+      activityStoppedAt: "2016-05-12 12:47",
+      appName: "Endomondo",
+      distance: 1283.7640380859375,
+      energy: 92,
+      name: "running",
+      source: "com.endomondo.android"
+    }
 ]
 
 ```
