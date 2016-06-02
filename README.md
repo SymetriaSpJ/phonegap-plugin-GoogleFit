@@ -20,9 +20,43 @@ window.plugins.fitatuGoogleFit.isConnected(
 #### Uruchamiamy proces uzyskania praw do Google Fit API
 
 ```javascript
-window.plugins.fitatuGoogleFit.getPermissions(
+window.plugins.fitatuGoogleFit.getGoogleFitPermission(
   function() {
 	console.log('success');
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+#### Sprawdzamy czy posiadamy prawa do lokalizacji
+
+```javascript
+window.plugins.fitatuGoogleFit.hasLocationPermission(
+  function(hasPermission) {
+  	if (hasPermission) {
+  	  console.log('You have permission');
+  	} else {
+  	  console.log("You don't have permission");
+  	}
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+#### Uruchamiamy proces uzyskania praw do lokalizacji
+
+```javascript
+window.plugins.fitatuGoogleFit.getLocationPermission(
+  function(currentPermission) {
+  	if (isConnected) {
+  	  console.log('You have permission already');
+  	} else {
+  	  console.log('Popup was displayed');
+  	}
   },
   function(message) {
     console.log('error: ' + message);
@@ -48,7 +82,7 @@ window.plugins.fitatuGoogleFit.getActivities(
 Przykład activites:
 ```
 [
-  activityStartedAt: "2016-05-12 08:35",
+  activityStartedAt: "2016-05-12 08:35", // UTC
   activityStoppedAt: "2016-05-12 08:55",
   appName: "Endomondo",
   distance: 1311.4349365234375,
@@ -68,4 +102,11 @@ Przykład activites:
 
 ```
 
-PS. Do zmiennej message trafiają komunikaty przeznaczone tylko dla oczu programisty ;)
+UWAGA: do message trafiają komunikaty przeznaczone tylko dla oczu programisty ;)
+
+
+#### Proponowany flow pobierania uprawnień:
+
+![Proponowany flow pobierania uprawnień](https://github.com/SymetriaSpJ/phonegap-plugin-GoogleFit/blob/branch/docs/GoogleFitPhonegapPlugin-getPermissions.png "getPermissions")
+
+
