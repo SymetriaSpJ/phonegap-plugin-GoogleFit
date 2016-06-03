@@ -84,6 +84,10 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     }
 
     private void handleIsConnected(CallbackContext callbackContext) {
+        if (!hasLocationPermission()) {
+            callbackContext.success(0);
+        }
+
         cordova.getThreadPool().execute(
                 new IsConnectedCommand(
                         googleFitService,
@@ -109,11 +113,7 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     }
 
     private void handleHasLocationPermission(CallbackContext callbackContext) {
-        int result = activityContext.checkCallingOrSelfPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION
-        );
-
-        if (result == PackageManager.PERMISSION_GRANTED) {
+        if (hasLocationPermission()) {
             callbackContext.success(1);
         } else {
             callbackContext.success(0);
@@ -146,4 +146,11 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
         );
     }
 
+    private boolean hasLocationPermission() {
+        int result = activityContext.checkCallingOrSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION
+        );
+
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
 }
