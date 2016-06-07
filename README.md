@@ -83,8 +83,8 @@ Przykład activites:
 ```
 [
     {
-      activityStartedAt: "2016-05-12 08:35", // UTC
-      activityStoppedAt: "2016-05-12 08:55",
+      activityStartedAt: "2016-05-12 08:35:32", // UTC
+      activityStoppedAt: "2016-05-12 08:55:40",
       appName: "Endomondo",
       distance: 1311.4349365234375,
       energy: 94,
@@ -92,8 +92,8 @@ Przykład activites:
       source: "com.endomondo.android"
     },
     {
-      aivityStartedAt: "2016-05-12 12:32",
-      activityStoppedAt: "2016-05-12 12:47",
+      aivityStartedAt: "2016-05-12 12:32:23",
+      activityStoppedAt: "2016-05-12 12:47:32",
       appName: "Endomondo",
       distance: 1283.7640380859375,
       energy: 92,
