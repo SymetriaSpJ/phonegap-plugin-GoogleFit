@@ -58,7 +58,7 @@ public class GetActivitiesCommand extends Thread {
 
     private JSONArray activitiesToJSONArray(List<FitnessActivity> activities) throws JSONException {
         JSONArray results = new JSONArray();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (FitnessActivity activity : activities) {
