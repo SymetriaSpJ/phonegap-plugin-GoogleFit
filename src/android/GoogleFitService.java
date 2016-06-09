@@ -56,7 +56,7 @@ public class GoogleFitService {
                 .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addScope(new Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addConnectionCallbacks(
-                    connectionCallbacks
+                        connectionCallbacks
                 )
                 .addOnConnectionFailedListener(
                         onConnectionFiled
@@ -200,15 +200,7 @@ public class GoogleFitService {
                     }
                 });
 
-        googleApiClient.connect();
-
-        while (googleApiClient.isConnecting()) {
-            Thread.sleep(50);
-        }
-
-        if (!googleApiClient.isConnected()) {
-            throw new Exception("Problem with connection");
-        }
+        googleApiClient.blockingConnect();
     }
 
     private void logConnectionSuspended(int i) {

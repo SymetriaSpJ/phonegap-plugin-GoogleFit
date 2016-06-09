@@ -5,12 +5,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetActivitiesCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGoogleFitPermissionCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.IsConnectedCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.HasGoogleFitPermissionCommand;
 
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -27,8 +28,8 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     private final static String TAG = "GoogleFitCordovaPlugin";
     private GoogleFitService googleFitService;
-    private boolean breakGetPermissionsLoop = false;
     private Activity activityContext;
+    private CallbackContext getGoogleFitPermissionCallbackContext;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -42,8 +43,13 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1 && resultCode == 0) {
-            breakGetPermissionsLoop = true;
+        if (requestCode == 1 && !getGoogleFitPermissionCallbackContext.isFinished()) {
+            cordova.getThreadPool().execute(
+                    new HasGoogleFitPermissionCommand(
+                            googleFitService,
+                            getGoogleFitPermissionCallbackContext
+                    )
+            );
         }
     }
 
@@ -98,18 +104,14 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     private void handleGetGoogleFitPermission(CallbackContext callbackContext) {
         cordova.setActivityResultCallback(this);
-        googleFitService.getPermissions(callbackContext);
+        getGoogleFitPermissionCallbackContext = callbackContext;
 
-        while (!googleFitService.isConnected() && !breakGetPermissionsLoop) {
-            SystemClock.sleep(100);
-        }
-
-        breakGetPermissionsLoop = false;
-        if (googleFitService.isConnected()) {
-            callbackContext.success();
-        } else {
-            callbackContext.error("No permissions");
-        }
+        cordova.getThreadPool().execute(
+                new GetGoogleFitPermissionCommand(
+                        googleFitService,
+                        callbackContext
+                )
+        );
     }
 
     private void handleHasLocationPermission(CallbackContext callbackContext) {
