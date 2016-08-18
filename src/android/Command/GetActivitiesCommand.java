@@ -66,7 +66,6 @@ public class GetActivitiesCommand extends Thread {
             activityJSON.put("name", activity.getName());
             activityJSON.put("energy", activity.getCalories());
             activityJSON.put("source", activity.getSourceName());
-            activityJSON.put("appName", "Endomondo");
             activityJSON.put("distance", activity.getDistance());
             activityJSON.put("activityStartedAt", dateFormat.format(activity.getStartDate()));
             activityJSON.put("activityStoppedAt", dateFormat.format(activity.getEndDate()));
@@ -82,10 +81,6 @@ public class GetActivitiesCommand extends Thread {
 
         for (FitnessActivity activity : activities) {
             if (activity.getCalories() <= 0) {
-                continue;
-            }
-
-            if (!activity.getSourceName().equals("com.endomondo.android")) {
                 continue;
             }
 

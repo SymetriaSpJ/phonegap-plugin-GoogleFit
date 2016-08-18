@@ -85,7 +85,6 @@ Przykład activites:
     {
       activityStartedAt: "2016-05-12 08:35:32", // UTC
       activityStoppedAt: "2016-05-12 08:55:40",
-      appName: "Endomondo",
       distance: 1311.4349365234375,
       energy: 94,
       name: "running",
@@ -94,7 +93,6 @@ Przykład activites:
     {
       aivityStartedAt: "2016-05-12 12:32:23",
       activityStoppedAt: "2016-05-12 12:47:32",
-      appName: "Endomondo",
       distance: 1283.7640380859375,
       energy: 92,
       name: "running",
