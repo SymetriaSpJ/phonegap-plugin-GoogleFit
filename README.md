@@ -73,8 +73,12 @@ Dlatego warto wywołać te funkcję od razu po nawiązaniu połączenia.
 window.plugins.fitatuGoogleFit.setUserSettings(
   70,  // weight in kg
   172, // height in cm
-  function(message){console.log('success '+message);},
-  function(message){console.log('error '+message );}
+  function(){
+      console.log('success');
+  },
+  function(message){
+      console.log('error: ' + message );
+  }
 );
 ```
 
