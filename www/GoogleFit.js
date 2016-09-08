@@ -42,6 +42,19 @@ GoogleFit.prototype.hasLocationPermission = function (successCallback, failureCa
     );
 };
 
+GoogleFit.prototype.setUserSettings = function (weight, height, successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "setUserSettings",
+        [{
+            "weight" : weight,
+            "height" : height
+        }]
+    );
+};
+
 GoogleFit.prototype.getActivities = function (startTime, endTime, successCallback, failureCallback) {
     cordova.exec(
         successCallback,

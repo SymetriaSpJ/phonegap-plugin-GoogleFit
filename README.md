@@ -64,6 +64,24 @@ window.plugins.fitatuGoogleFit.getGoogleFitPermission(
 );
 ```
 
+#### Ustawiamy wzrost i wagę w Google Fit
+
+Ustawienie wagi i wzrostu jest niezbędne aby odbierać aktywności nagrywane w Google Fit.
+Dlatego warto wywołać te funkcję od razu po nawiązaniu połączenia. 
+
+```javascript
+window.plugins.fitatuGoogleFit.setUserSettings(
+  70,  // weight in kg
+  172, // height in cm
+  function(){
+      console.log('success');
+  },
+  function(message){
+      console.log('error: ' + message );
+  }
+);
+```
+
 #### Pobieranie aktywności
 
 ```javascript

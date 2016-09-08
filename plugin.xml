@@ -2,7 +2,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="com.fitatu.phonegap.plugin.googlefit"
-        version="0.0.5">
+        version="0.0.6">
 
     <name>Google Fit phonegap plugin</name>
     <description>Google Fit phonegap plugin</description>
@@ -34,5 +34,6 @@
         <source-file src="src/android/Command/GetGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/HasGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
+        <source-file src="src/android/Command/SetUserSettingsCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
     </platform>
 </plugin>

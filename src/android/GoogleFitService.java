@@ -11,6 +11,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.data.Bucket;
@@ -136,6 +137,10 @@ public class GoogleFitService {
         return rewriteBucketToFitnessActivities(dataReadResult.getBuckets());
     }
 
+    public synchronized Status insertData(DataSet dataSet) {
+        return Fitness.HistoryApi.insertData(googleApiClient, dataSet).await(1, TimeUnit.MINUTES);
+    }
+
     private List<FitnessActivity> rewriteBucketToFitnessActivities(List<Bucket> bucketList) {
         List<FitnessActivity> activities = new ArrayList<FitnessActivity>();
 
@@ -208,6 +213,8 @@ public class GoogleFitService {
             Log.i(TAG, "Connection lost.  Cause: Network Lost.");
         } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
             Log.i(TAG, "Connection lost.  Reason: Service Disconnected");
+        } else {
+            Log.i(TAG, "Connection lost.  Reason: Connection Suspended");
         }
     }
 }

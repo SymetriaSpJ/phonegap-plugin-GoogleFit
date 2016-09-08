@@ -12,6 +12,7 @@ import com.fitatu.phonegap.plugin.GoogleFit.Command.GetActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGoogleFitPermissionCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.IsConnectedCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.HasGoogleFitPermissionCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.SetUserSettingsCommand;
 
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -62,6 +63,12 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
             return true;
         }
 
+        if (action.equals("setUserSettings")) {
+            handleSetUserSettings(args, callbackContext);
+
+            return true;
+        }
+
         if (action.equals("getActivities")) {
             handleGetActivities(args, callbackContext);
 
@@ -98,6 +105,21 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
                 new IsConnectedCommand(
                         googleFitService,
                         callbackContext
+                )
+        );
+    }
+
+    private void handleSetUserSettings(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        double weight = args.getJSONObject(0).getDouble("weight");
+        double height = args.getJSONObject(0).getDouble("height");
+
+        cordova.getThreadPool().execute(
+                new SetUserSettingsCommand(
+                        googleFitService,
+                        callbackContext,
+                        activityContext.getApplicationContext(),
+                        weight,
+                        height
                 )
         );
     }
