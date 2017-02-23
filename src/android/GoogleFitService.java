@@ -13,12 +13,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.data.Value;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 
@@ -167,9 +167,10 @@ public class GoogleFitService {
                         } else if (field.getName().equals("distance")) {
                             activity.setDistance(dp.getValue(field).asFloat());
                         } else if (field.getName().equals("activity")) {
-                            int activityType = dp.getValue(field).asInt();
+                            Value value = dp.getValue(field);
+                            int activityType = value.asInt();
                             activity.setTypeId(activityType);
-                            activity.setName(FitnessActivities.getName(activityType));
+                            activity.setName(value.asActivity());
                         }
                     }
                 }
