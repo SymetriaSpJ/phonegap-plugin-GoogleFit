@@ -1,6 +1,6 @@
 {
   "name": "phonegap-plugin-googlefit",
-  "version": "1.0.0",
+  "version": "0.0.7",
   "description": "Google Fit phonegap plugin =========",
   "main": "index.js",
   "scripts": {
