@@ -13,7 +13,9 @@
     <engines>
         <engine name="cordova" version=">=5.0.0"/>
     </engines>
-
+        <config-file file="app/src/main/AndroidManifest.xml" target="/manifest/application" parent="/manifest">
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        </config-file>
     <platform name="android">
         <framework src="com.google.android.gms:play-services-fitness:+" />
         <config-file target="res/xml/config.xml" parent="/*">
@@ -21,10 +23,6 @@
                 <param name="android-package" value="com.fitatu.phonegap.plugin.GoogleFit.GoogleFitCordovaPlugin" />
             </feature>
             <access origin="https://accounts.google.com/*" />
-        </config-file>
-
-        <config-file file="app/src/main/AndroidManifest.xml" target="/manifest/application" parent="/manifest">
-            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
         </config-file>
 
         <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
