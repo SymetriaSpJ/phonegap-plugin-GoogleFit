@@ -23,7 +23,7 @@
             <access origin="https://accounts.google.com/*" />
         </config-file>
 
-        <config-file target="AndroidManifest.xml" parent="/manifest">
+        <config-file file="app/src/main/AndroidManifest.xml" target="/manifest/application" mode="merge">
             <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
         </config-file>
 
