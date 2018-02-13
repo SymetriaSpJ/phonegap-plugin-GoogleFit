@@ -23,9 +23,9 @@
             <access origin="https://accounts.google.com/*" />
         </config-file>
 
-        <config-file file="app/src/main/AndroidManifest.xml" target="/manifest/application" mode="merge">
+        <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application" mode="merge">
             <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-        </config-file>
+        </edit-config>
 
         <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/FitnessActivity.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
