@@ -2,7 +2,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="com.fitatu.phonegap.plugin.googlefit"
-        version="0.0.7">
+        version="0.0.8">
 
     <name>Google Fit phonegap plugin</name>
     <description>Google Fit phonegap plugin</description>
@@ -11,11 +11,9 @@
     </js-module>
 
     <engines>
-        <engine name="cordova" version=">=5.0.0"/>
+        <engine name="cordova" version=">=7.0.0"/>
     </engines>
-        <config-file file="app/src/main/AndroidManifest.xml" target="/manifest/application" parent="/manifest">
-            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-        </config-file>
+
     <platform name="android">
         <framework src="com.google.android.gms:play-services-fitness:+" />
         <config-file target="res/xml/config.xml" parent="/*">
@@ -24,6 +22,10 @@
             </feature>
             <access origin="https://accounts.google.com/*" />
         </config-file>
+
+        <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application" mode="merge">
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        </edit-config>
 
         <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/FitnessActivity.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
