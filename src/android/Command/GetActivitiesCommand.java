@@ -3,6 +3,10 @@ package com.fitatu.phonegap.plugin.GoogleFit.Command;
 import com.fitatu.phonegap.plugin.GoogleFit.FitnessActivity;
 import com.fitatu.phonegap.plugin.GoogleFit.GoogleFitService;
 
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.fitness.result.DataReadResult;
+
 import org.apache.cordova.CallbackContext;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,26 +38,41 @@ public class GetActivitiesCommand extends Thread {
     }
 
     public void run() {
-        List <FitnessActivity> activities;
-        JSONArray activitiesJSON;
-
         try {
-            activities = googleFitService.getActivities(startTime, endTime);
+            googleFitService
+                .getActivities(startTime, endTime)
+                .setResultCallback(new ResultCallback<DataReadResult>() {
+                    @Override
+                    public void onResult(DataReadResult dataReadResult) {
+                        List <FitnessActivity> activities;
+                        JSONArray activitiesJSON;
+
+                        Status status = dataReadResult.getStatus();
+
+                        if (status.isSuccess()) {
+                            activities = googleFitService
+                                .rewriteBucketToFitnessActivities(dataReadResult.getBuckets());
+                            activities = filterActivities(activities);
+
+                            try {
+                                activitiesJSON = activitiesToJSONArray(activities);
+                            } catch (JSONException e) {
+                                callbackContext.error("Problem with formatting results");
+                                return;
+                            }
+
+                            callbackContext.success(activitiesJSON);
+                        } else {
+                            callbackContext.error(
+                                "Problem with Google Fit API: " + status.getStatusMessage()
+                            );
+                        }
+                    }
+                });
         } catch (Exception e) {
             callbackContext.error("Problem with Google Fit API: " + e.getMessage());
             return;
         }
-
-        activities = filterActivities(activities);
-
-        try {
-            activitiesJSON = activitiesToJSONArray(activities);
-        } catch (JSONException e) {
-            callbackContext.error("Problem with formatting results");
-            return;
-        }
-
-        callbackContext.success(activitiesJSON);
     }
 
     private JSONArray activitiesToJSONArray(List<FitnessActivity> activities) throws JSONException {

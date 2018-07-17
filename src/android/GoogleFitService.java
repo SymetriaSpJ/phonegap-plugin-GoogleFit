@@ -10,6 +10,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
@@ -117,7 +118,7 @@ public class GoogleFitService {
         return googleApiClient.isConnected();
     }
 
-    public synchronized List<FitnessActivity> getActivities(long startTime, long endTime) throws Exception {
+    public synchronized PendingResult<DataReadResult> getActivities(long startTime, long endTime) throws Exception {
         establishConnection();
 
         DateFormat dateFormat = DateFormat.getDateInstance();
@@ -133,15 +134,14 @@ public class GoogleFitService {
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
 
-        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(10, TimeUnit.SECONDS);
-        return rewriteBucketToFitnessActivities(dataReadResult.getBuckets());
+        return Fitness.HistoryApi.readData(googleApiClient, readRequest);
     }
 
     public synchronized Status insertData(DataSet dataSet) {
         return Fitness.HistoryApi.insertData(googleApiClient, dataSet).await(1, TimeUnit.MINUTES);
     }
 
-    private List<FitnessActivity> rewriteBucketToFitnessActivities(List<Bucket> bucketList) {
+    public List<FitnessActivity> rewriteBucketToFitnessActivities(List<Bucket> bucketList) {
         List<FitnessActivity> activities = new ArrayList<FitnessActivity>();
 
         bucketLoop:
