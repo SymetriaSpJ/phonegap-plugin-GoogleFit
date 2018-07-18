@@ -133,7 +133,7 @@ public class GoogleFitService {
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
 
-        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(10, TimeUnit.SECONDS);
+        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(60, TimeUnit.SECONDS);
         return rewriteBucketToFitnessActivities(dataReadResult.getBuckets());
     }
 
