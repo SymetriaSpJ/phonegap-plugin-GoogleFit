@@ -1,7 +1,7 @@
 {
-  "name": "phonegap-plugin-googlefit",
+  "name": "fitatu-phonegap-plugin-googlefit",
   "version": "0.0.7",
-  "description": "Google Fit phonegap plugin =========",
+  "description": "Google Fit phonegap plugin",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
