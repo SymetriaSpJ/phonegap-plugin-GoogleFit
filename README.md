@@ -106,7 +106,9 @@ Przykład activites:
       distance: 1311.4349365234375,
       energy: 94,
       name: "running",
-      source: "com.endomondo.android"
+      type: 8,
+      source: "com.endomondo.android",
+      applicationName: "Endomondo"
     },
     {
       aivityStartedAt: "2016-05-12 12:32:23",
@@ -114,7 +116,9 @@ Przykład activites:
       distance: 1283.7640380859375,
       energy: 92,
       name: "running",
-      source: "com.endomondo.android"
+      type: 8,
+      source: "com.endomondo.android",
+      applicationName: "Endomondo"
     }
 ]
 

@@ -10,6 +10,7 @@ public class FitnessActivity {
     private Date startDate;
     private Date endDate;
     private String sourceName;
+    private String sourceLabel;
 
     public int getTypeId() {
         return typeId;
@@ -65,5 +66,13 @@ public class FitnessActivity {
 
     public void setSourceName(String sourceName) {
         this.sourceName = sourceName;
+    }
+
+    public String getSourceLabel() {
+        return sourceLabel;
+    }
+
+    public void setSourceLabel(String sourceLabel) {
+        this.sourceLabel = sourceLabel;
     }
 }

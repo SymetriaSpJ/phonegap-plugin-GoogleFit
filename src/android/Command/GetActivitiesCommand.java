@@ -66,7 +66,9 @@ public class GetActivitiesCommand extends Thread {
             activityJSON.put("name", activity.getName());
             activityJSON.put("energy", activity.getCalories());
             activityJSON.put("source", activity.getSourceName());
+            activityJSON.put("applicationName", activity.getSourceLabel());
             activityJSON.put("distance", activity.getDistance());
+            activityJSON.put("type", activity.getTypeId());
             activityJSON.put("activityStartedAt", dateFormat.format(activity.getStartDate()));
             activityJSON.put("activityStoppedAt", dateFormat.format(activity.getEndDate()));
 
