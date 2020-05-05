@@ -3,6 +3,7 @@ package com.fitatu.phonegap.plugin.GoogleFit;
 import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -16,6 +17,7 @@ import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Value;
@@ -37,6 +39,7 @@ public class GoogleFitService {
     private Activity activityContext;
     private GoogleApiClient googleApiClient;
     private boolean authInProgressFlag = false;
+    private PackageManager pm;
 
     public GoogleFitService(
             Context appContext,
@@ -44,6 +47,7 @@ public class GoogleFitService {
     ) {
         this.appContext = appContext;
         this.activityContext = activityContext;
+        this.pm = this.activityContext.getPackageManager();
     }
 
     private void buildGoogleApiClient(
@@ -152,11 +156,19 @@ public class GoogleFitService {
             for (DataSet dataSet : dataSets) {
 
                 for (DataPoint dp : dataSet.getDataPoints()) {
-                    if (dp.getOriginalDataSource().getAppPackageName() == null) {
+                    String appPkgName = dp.getOriginalDataSource().getAppPackageName();
+
+                    if (appPkgName == null) {
                         continue bucketLoop;
                     }
 
-                    activity.setSourceName(dp.getOriginalDataSource().getAppPackageName());
+                    try {
+                        activity.setSourceLabel((String) this.pm.getApplicationLabel(this.pm.getApplicationInfo(appPkgName, 0)));
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    activity.setSourceName(appPkgName);
 
                     activity.setStartDate(new Date(dp.getStartTime(TimeUnit.MILLISECONDS)));
                     activity.setEndDate(new Date(dp.getEndTime(TimeUnit.MILLISECONDS)));
