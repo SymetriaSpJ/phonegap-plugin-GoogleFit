@@ -39,6 +39,7 @@ public class GoogleFitService {
     private Activity activityContext;
     private GoogleApiClient googleApiClient;
     private boolean authInProgressFlag = false;
+    private PackageManager pm;
 
     public GoogleFitService(
             Context appContext,
@@ -46,6 +47,7 @@ public class GoogleFitService {
     ) {
         this.appContext = appContext;
         this.activityContext = activityContext;
+        this.pm = this.activityContext.getPackageManager();
     }
 
     private void buildGoogleApiClient(
@@ -160,10 +162,8 @@ public class GoogleFitService {
                         continue bucketLoop;
                     }
 
-                    PackageManager pm = this.activityContext.getPackageManager();
-
                     try {
-                        activity.setSourceLabel((String) pm.getApplicationLabel(pm.getApplicationInfo(appPkgName, 0)));
+                        activity.setSourceLabel((String) this.pm.getApplicationLabel(this.pm.getApplicationInfo(appPkgName, 0)));
                     } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
                     }
