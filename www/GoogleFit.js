@@ -68,6 +68,44 @@ GoogleFit.prototype.getActivities = function (startTime, endTime, successCallbac
     );
 };
 
+GoogleFit.prototype.getGMSActivities = function (startTime, endTime, successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "getGMSActivities",
+        [{
+            "startTime" : startTime,
+            "endTime" : endTime
+        }]
+    );
+};
+
+GoogleFit.prototype.getGMSDailyActivities = function (startTime, endTime, successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "getGMSDailyActivities",
+        [{
+            "startTime" : startTime,
+            "endTime" : endTime
+        }]
+    );
+};
+
+GoogleFit.prototype.getBMRValues = function (endTime, successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "getBMRValues",
+        [{
+            "endTime" : endTime
+        }]
+    );
+};
+
 GoogleFit.install = function () {
     if (!window.plugins) {
         window.plugins = {};
