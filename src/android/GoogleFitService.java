@@ -163,8 +163,6 @@ public class GoogleFitService {
     }
 
     private synchronized List<FitnessActivity> getGMSDailyActivities(long startTime, long endTime, List<FitnessActivity> basalValues) throws Exception {
-        DateFormat dateFormat = DateFormat.getDateInstance();
-
         Calendar c = Calendar.getInstance();
 
         c.setTimeInMillis(startTime);
@@ -178,9 +176,6 @@ public class GoogleFitService {
         c.set(Calendar.MINUTE, 59);
         c.set(Calendar.SECOND, 59);
         endTime = c.getTimeInMillis();
-
-        Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
-        Log.i(TAG, "Range End: " + dateFormat.format(endTime));
 
         DataSource filteredStepsSource = new DataSource.Builder()
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
@@ -366,7 +361,7 @@ public class GoogleFitService {
         long dailyActivityEndDate = 0;
 
         for (FitnessActivity activity : activities) {
-            if (activity.getActiveCalories() >= GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY && activity.getTypeId() != STILL_TYPE && activity.getTypeId() != UNKNOWN_TYPE) {
+            if ((activity.getSourceName().equals(FIT_SOURCE_NAME)  || activity.getActiveCalories() >= GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY) && activity.getTypeId() != STILL_TYPE && activity.getTypeId() != UNKNOWN_TYPE) {
                 splittedActivities.add(activity);
 
                 for (FitnessActivity dailyActivity : dailyActivities) {
