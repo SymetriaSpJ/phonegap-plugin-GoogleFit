@@ -6,11 +6,15 @@ public class FitnessActivity {
     private int typeId;
     private String name;
     private float calories;
+    private float basalCalories;
+    private float activeCalories;
     private float distance;
+    private float steps;
     private Date startDate;
     private Date endDate;
     private String sourceName;
     private String sourceLabel;
+    private Boolean daily = false;
 
     public int getTypeId() {
         return typeId;
@@ -36,12 +40,36 @@ public class FitnessActivity {
         this.calories = calories;
     }
 
+    public float getBasalCalories() {
+        return basalCalories;
+    }
+
+    public void setBasalCalories(float calories) {
+        this.basalCalories = calories;
+    }
+
+    public float getActiveCalories() {
+        return activeCalories;
+    }
+
+    public void setActiveCalories(float calories) {
+        this.activeCalories = calories;
+    }
+
     public float getDistance() {
         return distance;
     }
 
     public void setDistance(float distance) {
         this.distance = distance;
+    }
+
+    public float getSteps() {
+        return steps;
+    }
+
+    public void setSteps(float steps) {
+        this.steps = steps;
     }
 
     public Date getStartDate() {
@@ -74,5 +102,13 @@ public class FitnessActivity {
 
     public void setSourceLabel(String sourceLabel) {
         this.sourceLabel = sourceLabel;
+    }
+
+    public Boolean getDaily() {
+        return daily;
+    }
+
+    public void setDaily(Boolean daily) {
+        this.daily = daily;
     }
 }

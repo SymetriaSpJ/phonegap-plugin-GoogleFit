@@ -14,14 +14,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class GetActivitiesCommand extends Thread {
+public class GetGMSActivitiesCommand extends Thread {
 
     private GoogleFitService googleFitService;
     private CallbackContext callbackContext;
     private long startTime;
     private long endTime;
 
-    public GetActivitiesCommand(
+    public GetGMSActivitiesCommand(
             GoogleFitService googleFitService,
             long startTime,
             long endTime,
@@ -38,7 +38,7 @@ public class GetActivitiesCommand extends Thread {
         JSONArray activitiesJSON;
 
         try {
-            activities = googleFitService.getActivities(startTime, endTime);
+            activities = googleFitService.getGMSActivities(startTime, endTime);
         } catch (Exception e) {
             callbackContext.error("Problem with Google Fit API: " + e.getMessage());
             return;
@@ -72,6 +72,7 @@ public class GetActivitiesCommand extends Thread {
             activityJSON.put("distance", activity.getDistance());
             activityJSON.put("type", activity.getTypeId());
             activityJSON.put("steps", activity.getSteps());
+            activityJSON.put("daily", activity.getDaily());
             activityJSON.put("activityStartedAt", dateFormat.format(activity.getStartDate()));
             activityJSON.put("activityStoppedAt", dateFormat.format(activity.getEndDate()));
 

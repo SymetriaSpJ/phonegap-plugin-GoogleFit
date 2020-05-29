@@ -9,6 +9,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetActivitiesCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.GetBMRValuesCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGMSActivitiesCommand;
+import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGMSDailyActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGoogleFitPermissionCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.IsConnectedCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.HasGoogleFitPermissionCommand;
@@ -71,6 +74,24 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
         if (action.equals("getActivities")) {
             handleGetActivities(args, callbackContext);
+
+            return true;
+        }
+
+        if (action.equals("getGMSActivities")) {
+            handleGetGMSActivities(args, callbackContext);
+
+            return true;
+        }
+
+        if (action.equals("getGMSDailyActivities")) {
+            handleGetGMSDailyActivities(args, callbackContext);
+
+            return true;
+        }
+
+        if (action.equals("getBMRValues")) {
+            handleBMRValues(args, callbackContext);
 
             return true;
         }
@@ -165,6 +186,43 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
                 new GetActivitiesCommand(
                         googleFitService,
                         startTime,
+                        endTime,
+                        callbackContext)
+        );
+    }
+
+    private void handleGetGMSActivities(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        long startTime = args.getJSONObject(0).getLong("startTime");
+        long endTime = args.getJSONObject(0).getLong("endTime");
+
+        cordova.getThreadPool().execute(
+                new GetGMSActivitiesCommand(
+                        googleFitService,
+                        startTime,
+                        endTime,
+                        callbackContext)
+        );
+    }
+
+    private void handleGetGMSDailyActivities(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        long startTime = args.getJSONObject(0).getLong("startTime");
+        long endTime = args.getJSONObject(0).getLong("endTime");
+
+        cordova.getThreadPool().execute(
+                new GetGMSDailyActivitiesCommand(
+                        googleFitService,
+                        startTime,
+                        endTime,
+                        callbackContext)
+        );
+    }
+
+    private void handleBMRValues(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        long endTime = args.getJSONObject(0).getLong("endTime");
+
+        cordova.getThreadPool().execute(
+                new GetBMRValuesCommand(
+                        googleFitService,
                         endTime,
                         callbackContext)
         );
