@@ -38,8 +38,10 @@ public class GoogleFitService {
     private static final String FIT_SOURCE_NAME = "com.google.android.apps.fitness";
     private static final int UNKNOWN_TYPE = 4;
     private static final int STILL_TYPE = 3;
+    private static final int WALKING_TYPE = 7;
     private static final long DAY_IN_MICROSECONDS = 86400000;
-    private static final int GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY = 9;
+    private static final int GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY = 1;
+    private static final int GMS_WALKING_MIN_AUTOMATIC_ACTIVITY_SECONDS = 180;
 
     private Context appContext;
     private Activity activityContext;
@@ -137,7 +139,7 @@ public class GoogleFitService {
         List<FitnessActivity> basalValues = getBasalValues(endTime);
 
         List<FitnessActivity> allActivities = rewriteBucketToFitnessActivities(getActivitiesBucketList(startTime, endTime), basalValues);
-        List<FitnessActivity> mergedActivities = mergeSiblingActivities(allActivities, GMS_SOURCE_NAME);
+        List<FitnessActivity> mergedActivities = mergeSiblingActivities(allActivities);
         List<FitnessActivity> gmsActivities = filterActivitiesBySource(mergedActivities, GMS_SOURCE_NAME);
         List<FitnessActivity> fitActivities = filterActivitiesBySource(mergedActivities, FIT_SOURCE_NAME);
         gmsActivities.addAll(fitActivities);
@@ -361,7 +363,7 @@ public class GoogleFitService {
         long dailyActivityEndDate = 0;
 
         for (FitnessActivity activity : activities) {
-            if ((activity.getSourceName().equals(FIT_SOURCE_NAME)  || activity.getActiveCalories() >= GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY) && activity.getTypeId() != STILL_TYPE && activity.getTypeId() != UNKNOWN_TYPE) {
+            if (isIndependentActivity(activity)) {
                 splittedActivities.add(activity);
 
                 for (FitnessActivity dailyActivity : dailyActivities) {
@@ -402,18 +404,27 @@ public class GoogleFitService {
         return splittedActivities;
     }
 
-    private List<FitnessActivity> mergeSiblingActivities(List<FitnessActivity> allActivities, String sourceName) {
+    private Boolean isIndependentActivity(FitnessActivity activity) {
+        return (activity.getSourceName().equals(FIT_SOURCE_NAME)
+                || ((activity.getActiveCalories() >= GMS_MIN_AUTOMATIC_ACTIVITY_ENERGY)
+                    && (activity.getTypeId() != WALKING_TYPE || activity.getDurationSeconds() >= GMS_WALKING_MIN_AUTOMATIC_ACTIVITY_SECONDS)))
+                    && activity.getTypeId() != STILL_TYPE && activity.getTypeId() != UNKNOWN_TYPE;
+    }
+
+    private List<FitnessActivity> mergeSiblingActivities(List<FitnessActivity> allActivities) {
         List<FitnessActivity> activities = new ArrayList<>();
-        List<FitnessActivity> activitiesWithoutBreak = removeBreakBetweenActivities(allActivities, sourceName);
-        int activitiesWithoutBreakSize = activitiesWithoutBreak.size();
+        int allActivitiesSize = allActivities.size();
 
-        for (int i = 0; i < activitiesWithoutBreakSize; i++) {
-            FitnessActivity activity = activitiesWithoutBreak.get(i);
+        for (int i = 0; i < allActivitiesSize; i++) {
+            FitnessActivity activity = allActivities.get(i);
 
-            for (int j = i + 1; j < activitiesWithoutBreakSize; j++) {
-                FitnessActivity nextActivity = activitiesWithoutBreak.get(j);
+            for (int j = i + 1; j < allActivitiesSize; j++) {
+                FitnessActivity nextActivity = allActivities.get(j);
 
-                if (activity.getSourceName().equalsIgnoreCase(sourceName) && nextActivity.getSourceName().equalsIgnoreCase(sourceName) && activity.getTypeId() == nextActivity.getTypeId()) {
+                if ((activity.getSourceName().equalsIgnoreCase(GMS_SOURCE_NAME) || activity.getSourceName().equalsIgnoreCase(FIT_SOURCE_NAME)) && (nextActivity.getSourceName().equalsIgnoreCase(GMS_SOURCE_NAME) || nextActivity.getSourceName().equalsIgnoreCase(FIT_SOURCE_NAME)) && activity.getTypeId() == nextActivity.getTypeId()) {
+                    if (activity.getSourceName().equalsIgnoreCase(GMS_SOURCE_NAME) || nextActivity.getSourceName().equalsIgnoreCase(GMS_SOURCE_NAME)) {
+                        activity.setSourceName(GMS_SOURCE_NAME);
+                    }
                     activity.setCalories(activity.getCalories() + nextActivity.getCalories());
                     activity.setBasalCalories(activity.getBasalCalories() + nextActivity.getBasalCalories());
                     activity.setActiveCalories(activity.getActiveCalories() + nextActivity.getActiveCalories());
@@ -423,42 +434,9 @@ public class GoogleFitService {
 
                     i++;
                 } else {
+
+
                     break;
-                }
-            }
-
-            activities.add(activity);
-        }
-
-        return activities;
-    }
-
-    private List<FitnessActivity> removeBreakBetweenActivities(List<FitnessActivity> allActivities, String sourceName) {
-        List<FitnessActivity> activities = new ArrayList<>();
-        int allActivitiesSize = allActivities.size();
-
-        for (int i = 0; i < allActivitiesSize; i++) {
-            FitnessActivity activity = allActivities.get(i);
-
-            if ((i + 2) < allActivitiesSize) {
-                FitnessActivity breakActivity = allActivities.get(i+1);
-                FitnessActivity nextActivity = allActivities.get(i+2);
-
-                if (activity.getSourceName().equalsIgnoreCase(sourceName) &&
-                        nextActivity.getSourceName().equalsIgnoreCase(sourceName) &&
-                        breakActivity.getSourceName().equalsIgnoreCase(sourceName) &&
-                        activity.getTypeId() != UNKNOWN_TYPE && activity.getTypeId() != STILL_TYPE &&
-                        activity.getTypeId() == nextActivity.getTypeId() &&
-                        (breakActivity.getTypeId() == UNKNOWN_TYPE || breakActivity.getTypeId() == STILL_TYPE)
-                ) {
-                    activity.setCalories(activity.getCalories() + breakActivity.getCalories());
-                    activity.setBasalCalories(activity.getBasalCalories() + breakActivity.getBasalCalories());
-                    activity.setActiveCalories(activity.getActiveCalories() + breakActivity.getActiveCalories());
-                    activity.setDistance(activity.getDistance() + breakActivity.getDistance());
-                    activity.setSteps(activity.getSteps() + breakActivity.getSteps());
-                    activity.setEndDate(breakActivity.getEndDate());
-
-                    i++;
                 }
             }
 

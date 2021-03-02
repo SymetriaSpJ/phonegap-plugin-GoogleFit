@@ -82,7 +82,7 @@ window.plugins.fitatuGoogleFit.setUserSettings(
 );
 ```
 
-#### Pobieranie aktywności
+#### Pobieranie wszystkich aktywności
 
 ```javascript
 window.plugins.fitatuGoogleFit.getActivities(
@@ -119,6 +119,120 @@ Przykład activites:
       type: 8,
       source: "com.endomondo.android",
       applicationName: "Endomondo"
+    }
+]
+
+```
+
+#### Pobieranie aktywności z Google Fit (Fit i GMS wraz z aktywnościami dziennymi)
+
+```javascript
+window.plugins.fitatuGoogleFit.getGMSActivities(
+  1463037099000, // startTime in milliseconds
+  1463090099000, // endTime in milliseconds
+  function(activites) {
+    console.log(activites);
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+Przykład activites:
+```
+[
+    {
+      activityStartedAt: "2016-05-12 08:35:32", // UTC
+      activityStoppedAt: "2016-05-12 08:55:40",
+      distance: 1311.4349365234375,
+      energy: 94,
+      name: "running",
+      type: 8,
+      source: "com.google.android.apps.fitness",
+      applicationName: "Fit"
+    },
+    {
+      aivityStartedAt: "2016-05-12 12:32:23",
+      activityStoppedAt: "2016-05-12 12:47:32",
+      distance: 1283.7640380859375,
+      energy: 92,
+      name: "running",
+      type: 8,
+      source: "com.google.android.gms",
+      applicationName: "Usługi Google Play"
+    },
+    {
+      aivityStartedAt: "2016-05-12 12:32:23",
+      activityStoppedAt: "2016-05-12 12:47:32",
+      distance: 1283.7640380859375,
+      energy: 92,
+      daily: true,
+      source: "com.google.android.gms",
+      applicationName: "Usługi Google Play"
+    }
+]
+
+```
+
+#### Pobieranie dziennej aktywności z Google Fit
+
+```javascript
+window.plugins.fitatuGoogleFit.getGMSDailyActivities(
+  1463037099000, // startTime in milliseconds
+  1463090099000, // endTime in milliseconds
+  function(activites) {
+    console.log(activites);
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+Przykład activites:
+```
+[
+    {
+      acivityStartedAt: "2016-05-12 12:32:23",
+      activityStoppedAt: "2016-05-12 12:47:32",
+      distance: 1283.7640380859375,
+      energy: 1692,
+      basalEnergy: 1332,
+      activeCalories: 360,
+      daily: true,
+      source: "com.google.android.gms",
+      applicationName: "Usługi Google Play",
+      steps: 789
+    }
+]
+
+```
+
+#### Pobieranie poziomu podstawowej przemiany materii z Google Fit z ostatnich 24 miesięcy
+
+```javascript
+window.plugins.fitatuGoogleFit.getBMRValues(
+  1463090099000, // endTime in milliseconds
+  function(activites) {
+    console.log(activites);
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+Przykład activites:
+```
+[
+    {
+      basalEnergy: 1234.21,
+      date: "2019-05-12 12:23:32"
+    },
+    {
+      basalEnergy: 1432.56,
+      date: "2019-07-13 12:23:32"
     }
 ]
 
