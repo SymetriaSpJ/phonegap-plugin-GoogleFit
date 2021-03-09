@@ -72,6 +72,10 @@ public class FitnessActivity {
         this.steps = steps;
     }
 
+    public float getDurationSeconds() {
+        return (endDate.getTime()-startDate.getTime())/1000;
+    }
+
     public Date getStartDate() {
         return startDate;
     }
