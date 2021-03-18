@@ -1,6 +1,6 @@
 {
   "name": "fitatu-phonegap-plugin-googlefit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Google Fit phonegap plugin",
   "main": "index.js",
   "scripts": {
