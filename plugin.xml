@@ -16,6 +16,7 @@
 
     <platform name="android">
         <framework src="com.google.android.gms:play-services-fitness:20.0.0" />
+        <framework src="com.google.android.gms:play-services-auth:19.0.0" />
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="GoogleFit">
                 <param name="android-package" value="com.fitatu.phonegap.plugin.GoogleFit.GoogleFitCordovaPlugin" />
