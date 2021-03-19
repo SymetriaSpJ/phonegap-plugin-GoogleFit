@@ -1,8 +1,14 @@
 package com.fitatu.phonegap.plugin.GoogleFit;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetBMRValuesCommand;
@@ -98,10 +104,26 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
             return true;
         }
 
+        if (action.equals("hasPermission")) {
+            handleHasPermission(callbackContext);
+
+            return true;
+        }
+
+        if (action.equals("getPermission")) {
+            handleGetPermission(callbackContext);
+
+            return true;
+        }
+
         return false;
     }
 
     private void handleIsConnected(CallbackContext callbackContext) {
+        if (!hasLocationPermission()) {
+            callbackContext.success(0);
+        }
+
         cordova.getThreadPool().execute(
                 new IsConnectedCommand(
                         googleFitService,
@@ -135,6 +157,24 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
                         callbackContext
                 )
         );
+    }
+
+    private void handleHasPermission(CallbackContext callbackContext) {
+        if (hasPermission()) {
+            callbackContext.success(1);
+        } else {
+            callbackContext.success(0);
+        }
+    }
+
+    private void handleGetPermission(CallbackContext callbackContext) {
+        if (!hasPermission()) {
+            ActivityCompat.requestPermissions(activityContext,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACTIVITY_RECOGNITION},
+                    1);
+        }
+
+        handleHasPermission(callbackContext);
     }
 
     private void handleGetActivities(JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -185,5 +225,23 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
                         endTime,
                         callbackContext)
         );
+    }
+
+    private boolean hasPermission() {
+        return hasLocationPermission() && hasActivityRecognitionPermission();
+    }
+
+    private boolean hasLocationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return activityContext.checkCallingOrSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        }
+        return ContextCompat.checkSelfPermission(activityContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean hasActivityRecognitionPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return activityContext.checkCallingOrSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED;
+        }
+        return ContextCompat.checkSelfPermission(activityContext, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED;
     }
 }
