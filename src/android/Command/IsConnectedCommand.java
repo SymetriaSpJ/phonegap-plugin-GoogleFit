@@ -3,7 +3,6 @@ package com.fitatu.phonegap.plugin.GoogleFit.Command;
 import com.fitatu.phonegap.plugin.GoogleFit.GoogleFitService;
 
 import org.apache.cordova.CallbackContext;
-import org.apache.cordova.PluginResult;
 
 public class IsConnectedCommand extends Thread {
     private GoogleFitService googleFitService;

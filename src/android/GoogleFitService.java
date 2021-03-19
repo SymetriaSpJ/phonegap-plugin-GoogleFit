@@ -2,17 +2,16 @@ package com.fitatu.phonegap.plugin.GoogleFit;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessOptions;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
@@ -46,7 +45,7 @@ public class GoogleFitService {
     private Context appContext;
     private Activity activityContext;
     private GoogleApiClient googleApiClient;
-    private boolean authInProgressFlag = false;
+    private FitnessOptions fitnessOptions;
 
     public GoogleFitService(
             Context appContext,
@@ -54,6 +53,25 @@ public class GoogleFitService {
     ) {
         this.appContext = appContext;
         this.activityContext = activityContext;
+
+        fitnessOptions = FitnessOptions.builder()
+            .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_MOVE_MINUTES, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_WORKOUT_EXERCISE, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_ACTIVITY_SUMMARY, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_BASAL_METABOLIC_RATE_SUMMARY, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_MOVE_MINUTES, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+            .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
+            .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
+            .build();
     }
 
     private void buildGoogleApiClient(
@@ -76,66 +94,26 @@ public class GoogleFitService {
     }
 
     public synchronized void getPermissions(CallbackContext callbackContext) {
-        buildGoogleApiClient(
-                new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle bundle) {
-                        Log.i(TAG, "Connected!");
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int i) {
-                        logConnectionSuspended(i);
-                    }
-                },
-                new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.i(TAG, "Connection failed. Cause: " + result.toString());
-
-                        if (!result.hasResolution()) {
-                            return;
-                        }
-
-                        if (!authInProgressFlag) {
-                            try {
-                                Log.i(TAG, "Attempting to resolve failed connection");
-                                authInProgressFlag = true;
-                                result.startResolutionForResult(activityContext, 1);
-                            } catch (IntentSender.SendIntentException e) {
-                                Log.e(TAG, "Exception while starting resolution activity", e);
-                            }
-                        }
-
-                        authInProgressFlag = false;
-                    }
-                }
-        );
-
-        if (googleApiClient.blockingConnect().isSuccess()) {
+        if (!isConnected()) {
+            GoogleSignIn.requestPermissions(
+                    activityContext,
+                    GoogleFitCordovaPlugin.RC_REQUEST_GOOGLE_FIT_PERMISSION,
+                    GoogleSignIn.getLastSignedInAccount(activityContext),
+                    fitnessOptions);
+        } else {
             callbackContext.success();
         }
     }
 
     public synchronized boolean isConnected() {
-        try {
-            establishConnection();
-        } catch (Exception e) {
-            return false;
-        }
-
-        return googleApiClient.isConnected();
+        return GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(activityContext), fitnessOptions);
     }
 
     public synchronized List<FitnessActivity> getActivities(long startTime, long endTime) throws Exception {
-        establishConnection();
-
         return rewriteBucketToFitnessActivities(getActivitiesBucketList(startTime, endTime), getBasalValues(endTime));
     }
 
     public synchronized List<FitnessActivity> getGMSActivities(long startTime, long endTime) throws Exception {
-        establishConnection();
-
         List<FitnessActivity> basalValues = getBasalValues(endTime);
 
         List<FitnessActivity> allActivities = rewriteBucketToFitnessActivities(getActivitiesBucketList(startTime, endTime), basalValues);
@@ -150,8 +128,6 @@ public class GoogleFitService {
     }
 
     public synchronized List<FitnessActivity> getGMSDailyActivities(long startTime, long endTime) throws Exception {
-        establishConnection();
-
         List<FitnessActivity> basalValues = getBasalValues(endTime);
         List<FitnessActivity> dailyActivities = getGMSDailyActivities(startTime, endTime, basalValues);
 
@@ -159,8 +135,6 @@ public class GoogleFitService {
     }
 
     public synchronized List<FitnessActivity> getBMRValues(long endTime) throws Exception {
-        establishConnection();
-
         return getBasalValues(endTime);
     }
 
@@ -502,42 +476,5 @@ public class GoogleFitService {
         }
 
         return (float)(endDate.getTime() - startDate.getTime()) / DAY_IN_MICROSECONDS * basal;
-    }
-
-    private void establishConnection() throws Exception {
-        if (googleApiClient != null && googleApiClient.isConnected()) {
-            return;
-        }
-
-        buildGoogleApiClient(
-                new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle bundle) {
-                        Log.i(TAG, "Connected!");
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int i) {
-                        logConnectionSuspended(i);
-                    }
-                },
-                new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.i(TAG, "Connection failed. Cause: " + result.toString());
-                    }
-                });
-
-        googleApiClient.blockingConnect();
-    }
-
-    private void logConnectionSuspended(int i) {
-        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-            Log.i(TAG, "Connection lost.  Cause: Network Lost.");
-        } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-            Log.i(TAG, "Connection lost.  Reason: Service Disconnected");
-        } else {
-            Log.i(TAG, "Connection lost.  Reason: Connection Suspended");
-        }
     }
 }

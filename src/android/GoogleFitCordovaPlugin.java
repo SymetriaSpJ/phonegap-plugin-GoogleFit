@@ -36,6 +36,10 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     private GoogleFitService googleFitService;
     private Activity activityContext;
     private CallbackContext getGoogleFitPermissionCallbackContext;
+    private CallbackContext getPermissionCallbackContext;
+
+    public static final int RC_REQUEST_GOOGLE_FIT_PERMISSION = 1001;
+    public static final int RC_REQUEST_PERMISSION = 1002;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -49,13 +53,20 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1 && !getGoogleFitPermissionCallbackContext.isFinished()) {
+        if (requestCode == RC_REQUEST_GOOGLE_FIT_PERMISSION) {
             cordova.getThreadPool().execute(
-                    new HasGoogleFitPermissionCommand(
-                            googleFitService,
-                            getGoogleFitPermissionCallbackContext
-                    )
+                new HasGoogleFitPermissionCommand(
+                        googleFitService,
+                        getGoogleFitPermissionCallbackContext
+                )
             );
+        }
+    }
+
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (RC_REQUEST_PERMISSION == requestCode) {
+            handleHasPermission(getPermissionCallbackContext);
         }
     }
 
@@ -120,7 +131,7 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     }
 
     private void handleIsConnected(CallbackContext callbackContext) {
-        if (!hasLocationPermission()) {
+        if (!hasPermission()) {
             callbackContext.success(0);
         }
 
@@ -168,10 +179,12 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     }
 
     private void handleGetPermission(CallbackContext callbackContext) {
+        getPermissionCallbackContext = callbackContext;
+
         if (!hasPermission()) {
             ActivityCompat.requestPermissions(activityContext,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACTIVITY_RECOGNITION},
-                    1);
+                    RC_REQUEST_PERMISSION);
         }
 
         handleHasPermission(callbackContext);
