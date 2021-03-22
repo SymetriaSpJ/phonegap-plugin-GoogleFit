@@ -74,25 +74,6 @@ public class GoogleFitService {
             .build();
     }
 
-    private void buildGoogleApiClient(
-            GoogleApiClient.ConnectionCallbacks connectionCallbacks,
-            GoogleApiClient.OnConnectionFailedListener onConnectionFiled
-    ) {
-        googleApiClient = new GoogleApiClient.Builder(appContext)
-                .addApi(Fitness.HISTORY_API)
-                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(new Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
-                .addScope(new Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .addConnectionCallbacks(
-                        connectionCallbacks
-                )
-                .addOnConnectionFailedListener(
-                        onConnectionFiled
-                )
-                .build();
-    }
-
     public synchronized void getPermissions(CallbackContext callbackContext) {
         if (!isConnected()) {
             GoogleSignIn.requestPermissions(

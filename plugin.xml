@@ -36,7 +36,6 @@
         <source-file src="src/android/GoogleFitService.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/Command/IsConnectedCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
-        <source-file src="src/android/Command/HasGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetBMRValuesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGMSActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>

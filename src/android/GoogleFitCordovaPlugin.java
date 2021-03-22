@@ -16,7 +16,6 @@ import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGMSActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGMSDailyActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGoogleFitPermissionCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.IsConnectedCommand;
-import com.fitatu.phonegap.plugin.GoogleFit.Command.HasGoogleFitPermissionCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.SetUserSettingsCommand;
 
 import org.apache.cordova.CordovaInterface;
@@ -32,9 +31,9 @@ import org.json.JSONException;
  */
 public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
-    private final static String TAG = "GoogleFitCordovaPlugin";
     private GoogleFitService googleFitService;
     private Activity activityContext;
+    private Context appContext;
     private CallbackContext getGoogleFitPermissionCallbackContext;
     private CallbackContext getPermissionCallbackContext;
 
@@ -46,7 +45,7 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
         super.initialize(cordova, webView);
 
         activityContext = cordova.getActivity();
-        Context appContext = activityContext.getApplicationContext();
+        appContext = activityContext.getApplicationContext();
         googleFitService = new GoogleFitService(appContext, activityContext);
         cordova.setActivityResultCallback(this);
     }
@@ -55,7 +54,7 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RC_REQUEST_GOOGLE_FIT_PERMISSION) {
             cordova.getThreadPool().execute(
-                new HasGoogleFitPermissionCommand(
+                new IsConnectedCommand(
                         googleFitService,
                         getGoogleFitPermissionCallbackContext
                 )
@@ -151,7 +150,7 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
                 new SetUserSettingsCommand(
                         googleFitService,
                         callbackContext,
-                        activityContext.getApplicationContext(),
+                        appContext,
                         weight,
                         height
                 )
