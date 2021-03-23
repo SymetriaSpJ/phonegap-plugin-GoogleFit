@@ -8,8 +8,6 @@ import android.util.Log;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessOptions;
 import com.google.android.gms.fitness.data.Bucket;
@@ -49,7 +47,6 @@ public class GoogleFitService {
 
     private Context appContext;
     private Activity activityContext;
-    private GoogleApiClient googleApiClient;
     private FitnessOptions fitnessOptions;
 
     public GoogleFitService(
@@ -238,8 +235,27 @@ public class GoogleFitService {
         return readDataResult.getBuckets();
     }
 
-    public synchronized Status insertData(DataSet dataSet) {
-        return Fitness.HistoryApi.insertData(googleApiClient, dataSet).await(1, TimeUnit.MINUTES);
+    public synchronized boolean insertData(DataSet dataSet) {
+        GoogleSignInOptionsExtension fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
+                        .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
+                        .build();
+
+        GoogleSignInAccount googleSignInAccount =
+                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
+
+        Task<Void> response = Fitness.getHistoryClient(appContext, googleSignInAccount)
+                .insertData(dataSet);
+
+
+        try {
+            Tasks.await(response, 60, TimeUnit.SECONDS);
+
+            return true;
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            return false;
+        }
     }
 
     private List<FitnessActivity> rewriteBucketToFitnessActivities(List<Bucket> bucketList, List<FitnessActivity> basalValues) {

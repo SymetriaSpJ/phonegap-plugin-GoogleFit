@@ -1,10 +1,8 @@
 package com.fitatu.phonegap.plugin.GoogleFit.Command;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.fitatu.phonegap.plugin.GoogleFit.GoogleFitService;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
@@ -76,11 +74,10 @@ public class SetUserSettingsCommand extends Thread {
 
     private void insertData() throws Exception {
         for (DataSet dataSet : dataSets) {
-            Status status = googleFitService.insertData(dataSet);
-            Log.i(TAG, "InsertDataSet: " + status.getStatusMessage());
+            boolean status = googleFitService.insertData(dataSet);
 
-            if (!status.isSuccess()) {
-                throw new Exception(status.getStatusMessage());
+            if (!status) {
+                throw new Exception("insertData failed");
             }
         }
     }
@@ -94,31 +91,28 @@ public class SetUserSettingsCommand extends Thread {
                 .setType(DataSource.TYPE_RAW)
                 .build();
 
-        DataSet dataSet = DataSet.create(dataSource);
-        DataPoint dataPoint = dataSet.createDataPoint().setTimeInterval(
+        DataSet.Builder dataSetBuilder = DataSet.builder(dataSource);
+        dataSetBuilder.add(DataPoint.builder(dataSource).setTimeInterval(
                 0,
                 now.getTime(),
                 TimeUnit.MILLISECONDS
-        ).setFloatValues((float)weight);
+        ).setFloatValues((float)weight).build());
 
-        dataSet.add(dataPoint);
-        this.dataSets.add(dataSet);
+        this.dataSets.add(dataSetBuilder.build());
 
-        // Height
         dataSource = new DataSource.Builder()
                 .setAppPackageName(context)
                 .setDataType(DataType.TYPE_HEIGHT)
                 .setType(DataSource.TYPE_RAW)
                 .build();
 
-        dataSet = DataSet.create(dataSource);
-        dataPoint = dataSet.createDataPoint().setTimeInterval(
+        dataSetBuilder = DataSet.builder(dataSource);
+        dataSetBuilder.add(DataPoint.builder(dataSource).setTimeInterval(
                 0,
                 now.getTime(),
                 TimeUnit.MILLISECONDS
-        ).setFloatValues((float)height);
+        ).setFloatValues((float)height).build());
 
-        dataSet.add(dataPoint);
-        this.dataSets.add(dataSet);
+        this.dataSets.add(dataSetBuilder.build());
     }
 }
