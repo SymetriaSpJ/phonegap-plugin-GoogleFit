@@ -6,9 +6,9 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.common.Scopes;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessOptions;
@@ -17,10 +17,13 @@ import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Device;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Value;
 import com.google.android.gms.fitness.request.DataReadRequest;
-import com.google.android.gms.fitness.result.DataReadResult;
+import com.google.android.gms.fitness.result.DataReadResponse;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import org.apache.cordova.CallbackContext;
 
@@ -29,7 +32,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class GoogleFitService {
     public static final String TAG = "fitatu-googlefit";
@@ -59,16 +64,7 @@ public class GoogleFitService {
             .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
             .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
             .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.TYPE_MOVE_MINUTES, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.TYPE_WORKOUT_EXERCISE, FitnessOptions.ACCESS_READ)
             .addDataType(DataType.TYPE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_ACTIVITY_SUMMARY, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_BASAL_METABOLIC_RATE_SUMMARY, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_MOVE_MINUTES, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-            .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
             .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
             .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
             .build();
@@ -120,19 +116,17 @@ public class GoogleFitService {
     }
 
     private synchronized List<FitnessActivity> getGMSDailyActivities(long startTime, long endTime, List<FitnessActivity> basalValues) throws Exception {
-        Calendar c = Calendar.getInstance();
+        StartAndEndTimeFormatter dateTime = new StartAndEndTimeFormatter(startTime, endTime);
 
-        c.setTimeInMillis(startTime);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        startTime = c.getTimeInMillis();
+        GoogleSignInOptionsExtension fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                        .build();
 
-        c.setTimeInMillis(endTime);
-        c.set(Calendar.HOUR_OF_DAY, 23);
-        c.set(Calendar.MINUTE, 59);
-        c.set(Calendar.SECOND, 59);
-        endTime = c.getTimeInMillis();
+        GoogleSignInAccount googleSignInAccount =
+                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
 
         DataSource filteredStepsSource = new DataSource.Builder()
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
@@ -142,16 +136,19 @@ public class GoogleFitService {
                 .build();
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
-                .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
-                .aggregate(filteredStepsSource, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .setTimeRange(dateTime.getStartTime(), dateTime.getEndTime(), TimeUnit.MILLISECONDS)
                 .bucketByTime(1, TimeUnit.DAYS)
-                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .aggregate(DataType.TYPE_CALORIES_EXPENDED)
+                .aggregate(DataType.TYPE_DISTANCE_DELTA)
+                .aggregate(filteredStepsSource)
                 .build();
 
-        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(60, TimeUnit.SECONDS);
+        Task<DataReadResponse> response = Fitness.getHistoryClient(appContext, googleSignInAccount)
+                .readData(readRequest);
 
-        List<Bucket> bucketList = dataReadResult.getBuckets();
+        DataReadResponse readDataResult = Tasks.await(response, 60, TimeUnit.SECONDS);
+
+        List<Bucket> bucketList = readDataResult.getBuckets();
 
         List<FitnessActivity> activities = new ArrayList<>();
 
@@ -175,22 +172,22 @@ public class GoogleFitService {
                             activity.setSteps(dp.getValue(field).asInt());
                         }
                     }
-
-
                 }
             }
 
-            c.setTime(activity.getStartDate());
-            c.set(Calendar.HOUR_OF_DAY, 0);
-            c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            Date activityStartTime = c.getTime();
+            Calendar calendar = Calendar.getInstance();
 
-            c.setTime(activity.getStartDate());
-            c.set(Calendar.HOUR_OF_DAY, 23);
-            c.set(Calendar.MINUTE, 59);
-            c.set(Calendar.SECOND, 59);
-            Date activityEndTime = c.getTime();
+            calendar.setTime(activity.getStartDate());
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            Date activityStartTime = calendar.getTime();
+
+            calendar.setTime(activity.getStartDate());
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            Date activityEndTime = calendar.getTime();
 
             float basal = getBasalForDate(basalValues, activityStartTime, activityEndTime);
             float activeCalories = activity.getCalories() - basal;
@@ -205,38 +202,40 @@ public class GoogleFitService {
         return activities;
     }
 
-    private synchronized List<Bucket> getActivitiesBucketList(long startTime, long endTime) {
+    private synchronized List<Bucket> getActivitiesBucketList(long startTime, long endTime) throws InterruptedException, ExecutionException, TimeoutException {
         DateFormat dateFormat = DateFormat.getDateInstance();
 
-        Calendar c = Calendar.getInstance();
+        StartAndEndTimeFormatter dateTime = new StartAndEndTimeFormatter(startTime, endTime);
 
-        c.setTimeInMillis(startTime);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        startTime = c.getTimeInMillis();
+        Log.i(TAG, "Range Start: " + dateFormat.format(dateTime.getStartTime()));
+        Log.i(TAG, "Range End: " + dateFormat.format(dateTime.getEndTime()));
 
-        c.setTimeInMillis(endTime);
-        c.set(Calendar.HOUR_OF_DAY, 23);
-        c.set(Calendar.MINUTE, 59);
-        c.set(Calendar.SECOND, 59);
-        endTime = c.getTimeInMillis();
+        GoogleSignInOptionsExtension fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                        .build();
 
-        Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
-        Log.i(TAG, "Range End: " + dateFormat.format(endTime));
+        GoogleSignInAccount googleSignInAccount =
+                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
-                .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
-                .aggregate(DataType.TYPE_ACTIVITY_SEGMENT, DataType.AGGREGATE_ACTIVITY_SUMMARY)
-                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .setTimeRange(dateTime.getStartTime(), dateTime.getEndTime(), TimeUnit.MILLISECONDS)
                 .bucketByActivitySegment(1, TimeUnit.SECONDS)
-                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .aggregate(DataType.TYPE_CALORIES_EXPENDED)
+                .aggregate(DataType.TYPE_DISTANCE_DELTA)
+                .aggregate(DataType.TYPE_ACTIVITY_SEGMENT)
+                .aggregate(DataType.TYPE_STEP_COUNT_DELTA)
                 .build();
 
-        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(60, TimeUnit.SECONDS);
+        Task<DataReadResponse> response = Fitness.getHistoryClient(appContext, googleSignInAccount)
+                .readData(readRequest);
 
-        return dataReadResult.getBuckets();
+        DataReadResponse readDataResult = Tasks.await(response, 60, TimeUnit.SECONDS);
+
+        return readDataResult.getBuckets();
     }
 
     public synchronized Status insertData(DataSet dataSet) {
@@ -254,6 +253,7 @@ public class GoogleFitService {
             for (DataSet dataSet : dataSets) {
                 for (DataPoint dp : dataSet.getDataPoints()) {
                     String appPkgName = dp.getOriginalDataSource().getAppPackageName();
+                    Device device = dp.getOriginalDataSource().getDevice();
 
                     if (appPkgName != null) {
                         PackageManager pm = this.activityContext.getPackageManager();
@@ -267,21 +267,26 @@ public class GoogleFitService {
                         activity.setSourceName(appPkgName);
                     }
 
+                    if(device != null) {
+                        activity.setDevice(device.getModel());
+                    }
+
                     activity.setStartDate(new Date(dp.getStartTime(TimeUnit.MILLISECONDS)));
                     activity.setEndDate(new Date(dp.getEndTime(TimeUnit.MILLISECONDS)));
 
                     for(Field field : dp.getDataType().getFields()) {
-                        if (field.getName().equals(Field.FIELD_CALORIES.getName())) {
-                            activity.setCalories(dp.getValue(field).asFloat());
-                        } else if (field.getName().equals(Field.FIELD_DISTANCE.getName())) {
-                            activity.setDistance(dp.getValue(field).asFloat());
-                        } else if (field.getName().equals(Field.FIELD_ACTIVITY.getName())) {
-                            Value value = dp.getValue(field);
-                            int activityType = value.asInt();
-                            activity.setTypeId(activityType);
+                        String name = field.getName();
+                        Value value = dp.getValue(field);
+
+                        if (name.equals(Field.FIELD_CALORIES.getName())) {
+                            activity.setCalories(value.asFloat());
+                        } else if (name.equals(Field.FIELD_DISTANCE.getName())) {
+                            activity.setDistance(value.asFloat());
+                        } else if (name.equals(Field.FIELD_ACTIVITY.getName())) {
+                            activity.setTypeId(value.asInt());
                             activity.setName(value.asActivity());
-                        } else if (field.getName().equals(Field.FIELD_STEPS.getName())) {
-                            activity.setSteps(dp.getValue(field).asInt());
+                        } else if (name.equals(Field.FIELD_STEPS.getName())) {
+                            activity.setSteps(value.asInt());
                         }
                     }
 
@@ -313,29 +318,15 @@ public class GoogleFitService {
 
     private List<FitnessActivity> splitActivities(List<FitnessActivity> activities, List<FitnessActivity> dailyActivities) {
         List<FitnessActivity> splittedActivities = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
-        long dailyActivityStartDate = 0;
-        long dailyActivityEndDate = 0;
 
         for (FitnessActivity activity : activities) {
             if (isIndependentActivity(activity)) {
                 splittedActivities.add(activity);
 
                 for (FitnessActivity dailyActivity : dailyActivities) {
-                    calendar.setTime(dailyActivity.getStartDate());
-                    calendar.set(Calendar.HOUR_OF_DAY, 0);
-                    calendar.set(Calendar.MINUTE, 0);
-                    calendar.set(Calendar.SECOND, 0);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    dailyActivityStartDate = calendar.getTimeInMillis();
+                    StartAndEndTimeFormatter dateTime = new StartAndEndTimeFormatter(dailyActivity.getStartDate().getTime(), dailyActivity.getStartDate().getTime());
 
-                    calendar.set(Calendar.HOUR_OF_DAY, 23);
-                    calendar.set(Calendar.MINUTE, 59);
-                    calendar.set(Calendar.SECOND, 59);
-                    calendar.set(Calendar.MILLISECOND, 999);
-                    dailyActivityEndDate = calendar.getTimeInMillis();
-
-                    if (activity.getStartDate().getTime() > dailyActivityStartDate && activity.getStartDate().getTime() < dailyActivityEndDate) {
+                    if (activity.getStartDate().getTime() > dateTime.getStartTime() && activity.getStartDate().getTime() < dateTime.getEndTime()) {
                         dailyActivity.setDistance(dailyActivity.getDistance() - activity.getDistance());
                         dailyActivity.setSteps(dailyActivity.getSteps() - activity.getSteps());
                         dailyActivity.setCalories(dailyActivity.getCalories() - activity.getCalories());
@@ -401,20 +392,31 @@ public class GoogleFitService {
         return activities;
     }
 
-    private List<FitnessActivity> getBasalValues(long endTime) {
+    private List<FitnessActivity> getBasalValues(long endTime) throws InterruptedException, ExecutionException, TimeoutException {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(endTime);
         calendar.add(Calendar.MONTH, -24);
 
+        GoogleSignInOptionsExtension fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
+                        .build();
+
+        GoogleSignInAccount googleSignInAccount =
+                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
+
         DataReadRequest readRequest = new DataReadRequest.Builder()
-                .aggregate(DataType.TYPE_BASAL_METABOLIC_RATE, DataType.AGGREGATE_BASAL_METABOLIC_RATE_SUMMARY)
-                .bucketByTime(1, TimeUnit.DAYS)
                 .setTimeRange(calendar.getTimeInMillis(), endTime, TimeUnit.MILLISECONDS)
+                .bucketByTime(1, TimeUnit.DAYS)
+                .aggregate(DataType.TYPE_BASAL_METABOLIC_RATE)
                 .build();
 
-        DataReadResult dataReadResult = Fitness.HistoryApi.readData(googleApiClient, readRequest).await(60, TimeUnit.SECONDS);
+        Task<DataReadResponse> response = Fitness.getHistoryClient(appContext, googleSignInAccount)
+                .readData(readRequest);
 
-        List<Bucket> bucketList = dataReadResult.getBuckets();
+        DataReadResponse readDataResult = Tasks.await(response, 60, TimeUnit.SECONDS);
+
+        List<Bucket> bucketList = readDataResult.getBuckets();
 
         List<FitnessActivity> basalValues = new ArrayList<>();
 
