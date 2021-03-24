@@ -22,6 +22,16 @@ GoogleFit.prototype.getGoogleFitPermission = function (successCallback, failureC
     );
 };
 
+GoogleFit.prototype.disconnect = function (successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "disconnect",
+        []
+    );
+};
+
 GoogleFit.prototype.getPermission = function (successCallback, failureCallback) {
     cordova.exec(
         successCallback,

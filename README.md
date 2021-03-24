@@ -64,6 +64,19 @@ window.plugins.fitatuGoogleFit.getGoogleFitPermission(
 );
 ```
 
+#### Rozłączanie z Google Fit API
+
+```javascript
+window.plugins.fitatuGoogleFit.disconnect(
+  function() {
+	console.log('success');
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
 #### Ustawiamy wzrost i wagę w Google Fit
 
 Ustawienie wagi i wzrostu jest niezbędne aby odbierać aktywności nagrywane w Google Fit.

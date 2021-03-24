@@ -10,6 +10,7 @@ import android.os.Build;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.fitatu.phonegap.plugin.GoogleFit.Command.DisconnectCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetActivitiesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetBMRValuesCommand;
 import com.fitatu.phonegap.plugin.GoogleFit.Command.GetGMSActivitiesCommand;
@@ -114,6 +115,12 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
             return true;
         }
 
+        if (action.equals("disconnect")) {
+            handleDisconnect(callbackContext);
+
+            return true;
+        }
+
         if (action.equals("hasPermission")) {
             handleHasPermission(callbackContext);
 
@@ -163,6 +170,18 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
         cordova.getThreadPool().execute(
                 new GetGoogleFitPermissionCommand(
+                        googleFitService,
+                        callbackContext
+                )
+        );
+    }
+
+    private void handleDisconnect(CallbackContext callbackContext) {
+        cordova.setActivityResultCallback(this);
+        getGoogleFitPermissionCallbackContext = callbackContext;
+
+        cordova.getThreadPool().execute(
+                new DisconnectCommand(
                         googleFitService,
                         callbackContext
                 )

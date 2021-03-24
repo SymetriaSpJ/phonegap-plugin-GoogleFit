@@ -79,6 +79,21 @@ public class GoogleFitService {
         }
     }
 
+    public synchronized void disconnect(CallbackContext callbackContext) {
+        GoogleSignInAccount googleSignInAccount =
+                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
+
+        Task<Void> response = Fitness.getConfigClient(appContext, googleSignInAccount).disableFit();
+
+        try {
+            Tasks.await(response, 60, TimeUnit.SECONDS);
+
+            callbackContext.success(1);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            callbackContext.success(0);
+        }
+    }
+
     public synchronized boolean isConnected() {
         return GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(activityContext), fitnessOptions);
     }

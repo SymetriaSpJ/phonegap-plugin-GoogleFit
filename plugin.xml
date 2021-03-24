@@ -42,5 +42,6 @@
         <source-file src="src/android/Command/GetGMSActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGMSDailyActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/SetUserSettingsCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
+        <source-file src="src/android/Command/DisconnectCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
     </platform>
 </plugin>
