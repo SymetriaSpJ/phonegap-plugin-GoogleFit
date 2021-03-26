@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessOptions;
@@ -80,13 +81,12 @@ public class GoogleFitService {
     }
 
     public synchronized void disconnect(CallbackContext callbackContext) {
-        GoogleSignInAccount googleSignInAccount =
-                GoogleSignIn.getAccountForExtension(appContext, fitnessOptions);
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder().build()    ;
 
-        Task<Void> response = Fitness.getConfigClient(appContext, googleSignInAccount).disableFit();
+        Task<Void> revokeAccessTask = GoogleSignIn.getClient(appContext, googleSignInOptions).revokeAccess();
 
         try {
-            Tasks.await(response, 60, TimeUnit.SECONDS);
+            Tasks.await(revokeAccessTask, 60, TimeUnit.SECONDS);
 
             callbackContext.success(1);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
