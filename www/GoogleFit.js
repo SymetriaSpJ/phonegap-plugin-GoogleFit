@@ -22,22 +22,32 @@ GoogleFit.prototype.getGoogleFitPermission = function (successCallback, failureC
     );
 };
 
-GoogleFit.prototype.getLocationPermission = function (successCallback, failureCallback) {
+GoogleFit.prototype.disconnect = function (successCallback, failureCallback) {
     cordova.exec(
         successCallback,
         failureCallback,
         "GoogleFit",
-        "getLocationPermission",
+        "disconnect",
         []
     );
 };
 
-GoogleFit.prototype.hasLocationPermission = function (successCallback, failureCallback) {
+GoogleFit.prototype.getPermission = function (successCallback, failureCallback) {
     cordova.exec(
         successCallback,
         failureCallback,
         "GoogleFit",
-        "hasLocationPermission",
+        "getPermission",
+        []
+    );
+};
+
+GoogleFit.prototype.hasPermission = function (successCallback, failureCallback) {
+    cordova.exec(
+        successCallback,
+        failureCallback,
+        "GoogleFit",
+        "hasPermission",
         []
     );
 };

@@ -72,6 +72,7 @@ public class GetGMSActivitiesCommand extends Thread {
             activityJSON.put("distance", activity.getDistance());
             activityJSON.put("type", activity.getTypeId());
             activityJSON.put("steps", activity.getSteps());
+            activityJSON.put("device", activity.getDevice());
             activityJSON.put("daily", activity.getDaily());
             activityJSON.put("activityStartedAt", dateFormat.format(activity.getStartDate()));
             activityJSON.put("activityStoppedAt", dateFormat.format(activity.getEndDate()));

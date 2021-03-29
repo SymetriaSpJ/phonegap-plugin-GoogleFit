@@ -2,7 +2,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="com.fitatu.phonegap.plugin.googlefit"
-        version="0.1.0">
+        version="1.0.0">
 
     <name>Google Fit phonegap plugin</name>
     <description>Google Fit phonegap plugin</description>
@@ -11,12 +11,14 @@
     </js-module>
 
     <engines>
-        <engine name="cordova" version=">=5.0.0"/>
+        <engine name="cordova-android" version=">=9.0.0"/>
     </engines>
 
     <platform name="android">
-        <framework src="com.google.android.gms:play-services-fitness:16.+" />
+        <framework src="com.google.android.gms:play-services-fitness:20.0.0" />
+        <framework src="com.google.android.gms:play-services-auth:19.0.0" />
         <config-file target="res/xml/config.xml" parent="/*">
+            <preference name="AndroidXEnabled" value="true" />
             <feature name="GoogleFit">
                 <param name="android-package" value="com.fitatu.phonegap.plugin.GoogleFit.GoogleFitCordovaPlugin" />
             </feature>
@@ -25,18 +27,27 @@
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.gms.permission.ACTIVITY_RECOGNITION" />
+            <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <service android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+                     android:exported="true"
+                     android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION" />
         </config-file>
 
         <source-file src="src/android/GoogleFitCordovaPlugin.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/FitnessActivity.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/GoogleFitService.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
+        <source-file src="src/android/StartAndEndTimeFormatter.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/"/>
         <source-file src="src/android/Command/IsConnectedCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
-        <source-file src="src/android/Command/HasGoogleFitPermissionCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetBMRValuesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGMSActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/GetGMSDailyActivitiesCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
         <source-file src="src/android/Command/SetUserSettingsCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
+        <source-file src="src/android/Command/DisconnectCommand.java" target-dir="src/com/fitatu/phonegap/plugin/GoogleFit/Command/"/>
     </platform>
 </plugin>

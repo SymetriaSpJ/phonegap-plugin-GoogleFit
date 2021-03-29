@@ -17,10 +17,10 @@ window.plugins.fitatuGoogleFit.isConnected(
 );
 ```
 
-#### Sprawdzamy czy posiadamy prawa do lokalizacji
+#### Sprawdzamy czy posiadamy prawa do lokalizacji i aktywności
 
 ```javascript
-window.plugins.fitatuGoogleFit.hasLocationPermission(
+window.plugins.fitatuGoogleFit.hasPermission(
   function(hasPermission) {
   	if (hasPermission) {
   	  console.log('You have permission');
@@ -34,10 +34,10 @@ window.plugins.fitatuGoogleFit.hasLocationPermission(
 );
 ```
 
-#### Uruchamiamy proces uzyskania praw do lokalizacji
+#### Uruchamiamy proces uzyskania praw do lokalizacji i aktywności
 
 ```javascript
-window.plugins.fitatuGoogleFit.getLocationPermission(
+window.plugins.fitatuGoogleFit.getPermission(
   function(currentPermission) {
   	if (currentPermission) {
   	  console.log('You have permission already');
@@ -55,6 +55,19 @@ window.plugins.fitatuGoogleFit.getLocationPermission(
 
 ```javascript
 window.plugins.fitatuGoogleFit.getGoogleFitPermission(
+  function() {
+	console.log('success');
+  },
+  function(message) {
+    console.log('error: ' + message);
+  }
+);
+```
+
+#### Rozłączanie z Google Fit API
+
+```javascript
+window.plugins.fitatuGoogleFit.disconnect(
   function() {
 	console.log('success');
   },

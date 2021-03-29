@@ -14,6 +14,7 @@ public class FitnessActivity {
     private Date endDate;
     private String sourceName;
     private String sourceLabel;
+    private String device;
     private Boolean daily = false;
 
     public int getTypeId() {
@@ -114,5 +115,13 @@ public class FitnessActivity {
 
     public void setDaily(Boolean daily) {
         this.daily = daily;
+    }
+
+    public String getDevice() {
+        return device;
+    }
+
+    public void setDevice(String device) {
+        this.device = device;
     }
 }
