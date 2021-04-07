@@ -81,7 +81,18 @@ public class GoogleFitService {
     }
 
     public synchronized void disconnect(CallbackContext callbackContext) {
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder().build()    ;
+        GoogleSignInOptionsExtension fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_DISTANCE_DELTA, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
+                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
+                        .build();
+
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder().addExtension(fitnessOptions).build();
 
         Task<Void> revokeAccessTask = GoogleSignIn.getClient(appContext, googleSignInOptions).revokeAccess();
 
@@ -262,7 +273,6 @@ public class GoogleFitService {
 
         Task<Void> response = Fitness.getHistoryClient(appContext, googleSignInAccount)
                 .insertData(dataSet);
-
 
         try {
             Tasks.await(response, 60, TimeUnit.SECONDS);
@@ -459,7 +469,7 @@ public class GoogleFitService {
             for (DataSet dataSet : dataSets) {
                 for (DataPoint dp : dataSet.getDataPoints()) {
                     activity.setStartDate(new Date(dp.getStartTime(TimeUnit.MILLISECONDS)));
-                    activity.setBasalCalories(dp.getValue(Field.FIELD_AVERAGE).asFloat());
+                    activity.setBasalCalories(dp.getValue(Field.FIELD_MAX).asFloat());
                 }
             }
 
