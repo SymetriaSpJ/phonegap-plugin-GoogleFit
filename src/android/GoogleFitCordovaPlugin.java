@@ -27,6 +27,9 @@ import org.apache.cordova.CordovaWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class echoes a string called from JavaScript.
  */
@@ -198,11 +201,20 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     private void handleGetPermission(CallbackContext callbackContext) {
         getPermissionCallbackContext = callbackContext;
+        List<String> permissionsList = new ArrayList<>();
+        permissionsList.add(Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionsList.add(Manifest.permission.ACTIVITY_RECOGNITION);
+        } else {
+            permissionsList.add("com.google.android.gms.permission.ACTIVITY_RECOGNITION");
+        }
+
+        String[] permissions = new String[permissionsList.size()];
+        permissions = permissionsList.toArray(permissions);
 
         if (!hasPermission()) {
-            ActivityCompat.requestPermissions(activityContext,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACTIVITY_RECOGNITION},
-                    RC_REQUEST_PERMISSION);
+            ActivityCompat.requestPermissions(activityContext, permissions, RC_REQUEST_PERMISSION);
         }
 
         handleHasPermission(callbackContext);
@@ -271,8 +283,11 @@ public class GoogleFitCordovaPlugin extends CordovaPlugin {
 
     private boolean hasActivityRecognitionPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return activityContext.checkCallingOrSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED;
+            return activityContext.checkCallingOrSelfPermission("com.google.android.gms.permission.ACTIVITY_RECOGNITION") == PackageManager.PERMISSION_GRANTED;
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return ContextCompat.checkSelfPermission(activityContext, "com.google.android.gms.permission.ACTIVITY_RECOGNITION") == PackageManager.PERMISSION_GRANTED;
         }
+
         return ContextCompat.checkSelfPermission(activityContext, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED;
     }
 }
